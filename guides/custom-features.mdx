@@ -169,7 +169,7 @@ Each feature exports a pre-built selector that returns just that feature's state
     function VolumeControl() {
       const volume = Player.usePlayer(selectVolume);
       return (
-        <button onClick={() => volume?.setMuted(!volume.muted)}>
+        <button onClick={() => volume?.toggleMuted()}>
           {volume?.muted ? 'Unmute' : 'Mute'}
         </button>
       );

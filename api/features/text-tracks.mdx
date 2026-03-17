@@ -1,5 +1,5 @@
 ---
-title: "textTracks"
+title: "textTrack"
 description: "Subtitles, captions, and chapter track state for the player store"
 ---
 
@@ -8,9 +8,9 @@ Manages subtitles, captions, chapters, and thumbnail tracks. Required by `Captio
 ## Import
 
 ```ts
-import { textTracks, selectTextTracks } from '@videojs/react';
+import { textTrack, selectTextTrack } from '@videojs/react';
 // or
-import { textTracks, selectTextTracks } from '@videojs/html';
+import { textTrack, selectTextTrack } from '@videojs/html';
 ```
 
 ## Usage
@@ -18,19 +18,19 @@ import { textTracks, selectTextTracks } from '@videojs/html';
 <Tabs>
   <Tab title="React">
     ```tsx
-    import { createPlayer, textTracks } from '@videojs/react';
+    import { createPlayer, textTrack } from '@videojs/react';
 
     const Player = createPlayer({
-      features: [textTracks],
+      features: [textTrack],
     });
     ```
   </Tab>
   <Tab title="HTML">
     ```ts
-    import { createPlayer, textTracks } from '@videojs/html';
+    import { createPlayer, textTrack } from '@videojs/html';
 
     const { ProviderMixin, PlayerController, context } = createPlayer({
-      features: [textTracks],
+      features: [textTrack],
     });
     ```
   </Tab>
@@ -60,21 +60,21 @@ import { textTracks, selectTextTracks } from '@videojs/html';
 
 ## Actions
 
-<ResponseField name="toggleSubtitles(forceShow?)" type="(forceShow?: boolean) => void">
-  Toggle subtitle and caption visibility. Pass `true` to force show, `false` to force hide.
+<ResponseField name="toggleSubtitles(forceShow?)" type="(forceShow?: boolean) => boolean">
+  Toggle subtitle and caption visibility. Pass `true` to force show, `false` to force hide. Returns the new state.
 </ResponseField>
 
 ## Selector
 
-Use `selectTextTracks` to subscribe to only the text tracks slice of state. Returns `undefined` if the textTracks feature is not configured.
+Use `selectTextTrack` to subscribe to only the text track slice of state. Returns `undefined` if the `textTrack` feature is not configured.
 
 <Tabs>
   <Tab title="React">
     ```tsx
-    import { selectTextTracks, usePlayer } from '@videojs/react';
+    import { selectTextTrack, usePlayer } from '@videojs/react';
 
     function CaptionsButton() {
-      const tracks = usePlayer(selectTextTracks);
+      const tracks = usePlayer(selectTextTrack);
       if (!tracks) return null;
 
       return (
@@ -87,18 +87,18 @@ Use `selectTextTracks` to subscribe to only the text tracks slice of state. Retu
   </Tab>
   <Tab title="HTML">
     ```ts
-    import { createPlayer, MediaElement, selectTextTracks } from '@videojs/html';
+    import { createPlayer, MediaElement, selectTextTrack } from '@videojs/html';
     import { videoFeatures } from '@videojs/html/video';
 
     const { PlayerController, context } = createPlayer({ features: videoFeatures });
 
     class CaptionsButton extends MediaElement {
-      readonly #textTracks = new PlayerController(this, context, selectTextTracks);
+      readonly #textTracks = new PlayerController(this, context, selectTextTrack);
     }
     ```
   </Tab>
 </Tabs>
 
 <Note>
-  Required by: `CaptionsButton`
+  Required by: `CaptionsButton`, `Thumbnail`
 </Note>

@@ -5,7 +5,11 @@ description: "Pre-packaged player configurations that bundle state management, s
 
 A **preset** packages everything you need for a specific player use case. It bundles [feature state management](/concepts/features), one or more [skins](/concepts/skins) for UI, and a default media element. Instead of assembling these pieces individually, you pick a preset that matches what you're building.
 
-For example, the `/background` preset includes a media element with autoplay, mute, and loop built in, a skin with no controls, and just the features needed to power them:
+For example, the `/background` preset includes a media element with autoplay, mute, and loop built in, and a skin with no controls.
+
+<Note>
+  `backgroundFeatures` is currently an empty array `[]` in beta. The background preset is a work-in-progress — use `createPlayer({ features: [] })` and add the features you need manually.
+</Note>
 
 <Tabs>
   <Tab title="React">

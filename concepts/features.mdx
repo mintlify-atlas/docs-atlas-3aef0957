@@ -205,19 +205,19 @@ Components that depend on availability (like `PiPButton` and `FullscreenButton`)
     `paused` state and `play()` / `pause()` actions. The foundation of any player.
   </Card>
   <Card title="volume" icon="volume-high">
-    `volume` (0–1) and `muted` state, `setVolume()` and `setMuted()` actions. Includes `volumeAvailability`.
+    `volume` (0–1) and `muted` state, `setVolume()` and `toggleMuted()` actions. Includes `volumeAvailability`.
   </Card>
   <Card title="time" icon="clock">
-    `currentTime` and `duration` state, `seekTo()` action.
+    `currentTime` and `duration` state, `seek()` action.
   </Card>
   <Card title="fullscreen" icon="expand">
-    `fullscreen` state and `enterFullscreen()` / `exitFullscreen()` actions. Includes `fullscreenAvailability`.
+    `fullscreen` state and `requestFullscreen()` / `exitFullscreen()` actions. Includes `fullscreenAvailability`.
   </Card>
   <Card title="pip" icon="picture-in-picture">
-    Picture-in-picture state and `enterPiP()` / `exitPiP()` actions. Includes `pipAvailability`.
+    Picture-in-picture state and `requestPictureInPicture()` / `exitPictureInPicture()` actions. Includes `pipAvailability`.
   </Card>
-  <Card title="textTracks" icon="closed-captioning">
-    Subtitle and caption track selection.
+  <Card title="textTrack" icon="closed-captioning">
+    Subtitle, caption, chapter, and thumbnail track state. `toggleSubtitles()` action.
   </Card>
   <Card title="playbackRate" icon="gauge-high">
     `playbackRate` state and `setPlaybackRate()` action.
