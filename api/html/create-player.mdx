@@ -1,0 +1,136 @@
+---
+title: "createPlayer()"
+description: "Factory function that creates a typed player store, mixins, and controller for HTML custom elements."
+---
+
+`createPlayer` is the entry point for setting up a Video.js player with HTML custom elements. It accepts a configuration object with a `features` array and returns a typed `PlayerController`, `context`, `ProviderMixin`, `ContainerMixin`, and a `create` store factory.
+
+## Signature
+
+```ts
+import { createPlayer } from '@videojs/html';
+import { videoFeatures } from '@videojs/html/video';
+
+const { ProviderMixin, ContainerMixin, PlayerController, context, create } =
+  createPlayer({ features: videoFeatures });
+```
+
+`createPlayer` is overloaded for video, audio, and generic feature sets:
+
+```ts
+// Video player (VideoPlayerStore)
+createPlayer(config: CreatePlayerConfig<VideoFeatures>): CreatePlayerResult<VideoPlayerStore>;
+
+// Audio player (AudioPlayerStore)
+createPlayer(config: CreatePlayerConfig<AudioFeatures>): CreatePlayerResult<AudioPlayerStore>;
+
+// Generic / custom features
+createPlayer<const Features extends AnyPlayerFeature[]>(
+  config: CreatePlayerConfig<Features>
+): CreatePlayerResult<PlayerStore<Features>>;
+```
+
+## Parameters
+
+<ParamField body="config" type="CreatePlayerConfig" required>
+  Configuration object for the player factory.
+
+  <Expandable title="properties">
+    <ParamField body="config.features" type="AnyPlayerFeature[]" required>
+      Array of feature objects that define the capabilities of the player store. Use `videoFeatures` from `@videojs/html/video` for a standard video player, `audioFeatures` from `@videojs/html/audio` for audio-only, or compose your own feature array.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+## Return value
+
+<ResponseField name="context" type="PlayerContext<Store>">
+  Typed context object used to wire `PlayerController` instances to the nearest provider element in the DOM tree.
+</ResponseField>
+
+<ResponseField name="create" type="() => Store">
+  Factory function that creates a new store instance. Use this for imperative, out-of-tree access to the player store.
+</ResponseField>
+
+<ResponseField name="PlayerController" type="typeof PlayerController">
+  `PlayerController` class pre-bound to this player's context. Pass it to custom element fields to subscribe to player state. See [PlayerController](/api/html/player-controller).
+</ResponseField>
+
+<ResponseField name="ProviderMixin" type="ProviderMixin<Store>">
+  Mixin function that adds store ownership and context provision to a base element class. The resulting element creates the store lazily and publishes it to descendants. See [ProviderMixin](/api/html/provider-mixin).
+</ResponseField>
+
+<ResponseField name="ContainerMixin" type="ContainerMixin<Store>">
+  Mixin function that adds media discovery and auto-attachment to a base element class. The resulting element watches for `<video>` and `<audio>` children and calls `store.attach()`. See [ContainerMixin](/api/html/container-mixin).
+</ResponseField>
+
+## Usage
+
+### Split provider and container (recommended)
+
+Use separate elements for the store owner and the media region. This pattern gives the most flexibility for complex layouts.
+
+```ts title="player.ts"
+import { createPlayer, MediaElement, selectPlayback } from '@videojs/html';
+import { videoFeatures } from '@videojs/html/video';
+
+const { ProviderMixin, ContainerMixin, PlayerController, context } = createPlayer({
+  features: videoFeatures,
+});
+
+// Provider element: owns the store and provides it to descendants
+class VideoPlayer extends ProviderMixin(MediaElement) {}
+customElements.define('video-player', VideoPlayer);
+
+// Container element: discovers and attaches the media element
+class VideoRegion extends ContainerMixin(MediaElement) {}
+customElements.define('video-region', VideoRegion);
+
+// Control element: subscribes to a slice of player state
+class PlayButton extends MediaElement {
+  #playback = new PlayerController(this, context, selectPlayback);
+}
+customElements.define('play-button', PlayButton);
+```
+
+```html title="index.html"
+<video-player>
+  <video-region>
+    <video src="/video.mp4"></video>
+  </video-region>
+  <play-button></play-button>
+</video-player>
+```
+
+### Composed element
+
+Apply both mixins to the same element when the store owner and media container should be the same node.
+
+```ts title="player.ts"
+import { createPlayer, MediaElement } from '@videojs/html';
+import { videoFeatures } from '@videojs/html/video';
+
+const { ProviderMixin, ContainerMixin } = createPlayer({ features: videoFeatures });
+
+class ComposedPlayer extends ProviderMixin(ContainerMixin(MediaElement)) {}
+customElements.define('composed-player', ComposedPlayer);
+```
+
+### Imperative store access
+
+Use the `create` factory to create a store instance outside the custom element tree.
+
+```ts title="player.ts"
+import { createPlayer } from '@videojs/html';
+import { videoFeatures } from '@videojs/html/video';
+
+const { create } = createPlayer({ features: videoFeatures });
+
+const store = create();
+await store.play();
+store.destroy();
+```
+
+<Note>
+  `createPlayer` returns the same `PlayerController` class regardless of call site. The `context` object is what scopes controllers to the correct provider. Keep the `context` reference from `createPlayer` and pass it to every `PlayerController` instance you create.
+</Note>

@@ -1,0 +1,179 @@
+---
+title: "Player context"
+description: "Low-level React context primitives for building custom player components that integrate with the player store."
+---
+
+The player context is the internal mechanism that connects `Player.Provider` to the hooks and components beneath it. Most applications use the typed API returned by `createPlayer` — these primitives are for building custom player infrastructure or integrating with the player at a lower level.
+
+```tsx
+import {
+  Container,
+  usePlayerContext,
+  useMediaRegistration,
+  type PlayerContextValue,
+} from '@videojs/react';
+```
+
+## Container
+
+The player root element. Wraps media content and controls, and attaches the player store to the DOM when a media element is registered. Exported directly from `@videojs/react` and included in the result of `createPlayer`.
+
+```tsx
+import { Container } from '@videojs/react';
+
+<Container className="my-player" style={{ width: 640, aspectRatio: '16/9' }}>
+  <video src="video.mp4" />
+  <Controls />
+</Container>
+```
+
+`Container` forwards a ref to the underlying `HTMLDivElement` and passes all standard `HTMLDivElement` attributes through.
+
+### ContainerProps
+
+<ParamField path="children" type="ReactNode">
+  The media element and controls to render inside the container.
+</ParamField>
+
+<ParamField path="...props" type="HTMLAttributes<HTMLDivElement>">
+  All standard `div` attributes — `className`, `style`, `id`, `onClick`, etc.
+</ParamField>
+
+<ParamField path="ref" type="Ref<HTMLDivElement>">
+  Forwarded ref to the underlying `div` element.
+</ParamField>
+
+### How Container works
+
+Internally, `Container` calls `store.attach({ media, container })` when both the store and a registered media element are available. This wires up container-level features like fullscreen. The effect re-runs if the media element changes.
+
+```tsx
+// Simplified internal implementation:
+useEffect(() => {
+  if (!media) return;
+  return store.attach({ media, container: internalRef.current });
+}, [media, store]);
+```
+
+## usePlayerContext()
+
+Returns the raw `PlayerContextValue` from the nearest `Player.Provider`. Throws if called outside a provider.
+
+Use this when you need simultaneous access to the store, the current media element, and the media setter — for example, when building a custom container or provider wrapper.
+
+```tsx
+import { usePlayerContext } from '@videojs/react';
+
+function CustomContainer({ children }) {
+  const { store, media, setMedia } = usePlayerContext();
+
+  // Access all three context values at once
+  return <div>{children}</div>;
+}
+```
+
+### Return value
+
+<ResponseField name="store" type="UnknownStore">
+  The player store instance. Use `usePlayer` or `useStore` to subscribe to state from the store.
+</ResponseField>
+
+<ResponseField name="media" type="Media | null">
+  The currently registered media element (`HTMLVideoElement` or `HTMLAudioElement`), or `null` if none has mounted yet.
+</ResponseField>
+
+<ResponseField name="setMedia" type="Dispatch<SetStateAction<Media | null>>">
+  The React state setter for the media element. Pass this to `useMediaRegistration` consumers. Calling it with an element registers that element as the active media; calling it with `null` unregisters.
+</ResponseField>
+
+## useMediaRegistration()
+
+Returns the `setMedia` setter from the player context, or `undefined` if called outside a provider. Use this in custom media components to register an `HTMLMediaElement` with the player.
+
+```tsx
+import { useMediaRegistration } from '@videojs/react';
+import { useEffect, useRef } from 'react';
+
+function CustomVideo({ src, ...props }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const setMedia = useMediaRegistration();
+
+  useEffect(() => {
+    setMedia?.(ref.current);
+    return () => setMedia?.(null);
+  }, [setMedia]);
+
+  return <video ref={ref} src={src} {...props} />;
+}
+```
+
+Only one media element should be registered per provider at a time. Registering a second element will replace the first.
+
+### Return value
+
+<ResponseField name="setMedia" type="Dispatch<SetStateAction<Media | null>> | undefined">
+  The media registration setter, or `undefined` if called outside a `Player.Provider`. Always check for `undefined` before calling (e.g., `setMedia?.(element)`).
+</ResponseField>
+
+## PlayerContextValue type
+
+The shape of the value provided by `Player.Provider` via React context.
+
+```ts
+import type { PlayerContextValue } from '@videojs/react';
+```
+
+<ResponseField name="store" type="UnknownStore">
+  The player store instance created by `createPlayer` when `Provider` mounts.
+</ResponseField>
+
+<ResponseField name="media" type="Media | null">
+  The registered `HTMLMediaElement`, or `null` if none has been registered.
+</ResponseField>
+
+<ResponseField name="setMedia" type="Dispatch<SetStateAction<Media | null>>">
+  Setter for registering or unregistering the active media element.
+</ResponseField>
+
+## Typical usage patterns
+
+### Building a custom skin
+
+When you build a custom skin component, use `Container` directly rather than through `createPlayer`. This lets you import once and reuse across multiple player instances:
+
+```tsx
+import { Container, usePlayer } from '@videojs/react';
+
+function VideoSkin({ src }) {
+  const store = usePlayer();
+
+  return (
+    <Container className="video-skin">
+      <video src={src} />
+      <button onClick={() => store.dispatch('toggle-playback')}>Play</button>
+    </Container>
+  );
+}
+```
+
+### Custom provider wrapper
+
+Wrap `Player.Provider` with additional context using `usePlayerContext`:
+
+```tsx
+import { usePlayerContext } from '@videojs/react';
+
+function AnalyticsWrapper({ children }) {
+  const { store } = usePlayerContext();
+
+  useEffect(() => {
+    return store.subscribe(() => {
+      if (!store.state.paused) {
+        analytics.track('video_play');
+      }
+    });
+  }, [store]);
+
+  return <>{children}</>;
+}
+```

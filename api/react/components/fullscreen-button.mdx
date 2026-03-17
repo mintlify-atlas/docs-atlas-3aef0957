@@ -1,0 +1,92 @@
+---
+title: "FullscreenButton"
+description: "Accessible fullscreen toggle button with platform availability detection."
+---
+
+`FullscreenButton` toggles fullscreen mode. It detects platform support through an `availability` state — when fullscreen is `"unsupported"`, the toggle does nothing.
+
+<Note>
+  Requires the `fullscreen` feature to be registered with the player.
+</Note>
+
+## Import
+
+```tsx
+import { FullscreenButton } from '@videojs/react';
+```
+
+## Basic Usage
+
+```tsx
+import { FullscreenButton } from '@videojs/react';
+
+function PlayerControls() {
+  return <FullscreenButton />;
+}
+```
+
+### Custom Render
+
+```tsx
+import { EnterFullscreenIcon, ExitFullscreenIcon } from './icons';
+import { FullscreenButton } from '@videojs/react';
+
+function PlayerControls() {
+  return (
+    <FullscreenButton
+      render={(props, state) => (
+        <button {...props}>
+          {state.fullscreen ? <ExitFullscreenIcon /> : <EnterFullscreenIcon />}
+        </button>
+      )}
+    />
+  );
+}
+```
+
+## Props
+
+<ParamField path="render" type="ReactElement | ((props: HTMLProps, state: FullscreenButton.State) => ReactElement | null)">
+  Custom render prop. Receives the computed HTML props and current state.
+</ParamField>
+
+<ParamField path="label" type="string | ((state: FullscreenButton.State) => string)">
+  Override the automatic `aria-label`. By default: `"Enter fullscreen"` or `"Exit fullscreen"`.
+</ParamField>
+
+<ParamField path="disabled" type="boolean">
+  Disables the button.
+</ParamField>
+
+<ParamField path="className" type="string | ((state: FullscreenButton.State) => string)">
+  CSS class name or a function that receives state and returns a class name.
+</ParamField>
+
+<ParamField path="style" type="CSSProperties | ((state: FullscreenButton.State) => CSSProperties)">
+  Inline style or a function that receives state and returns a style object.
+</ParamField>
+
+## State Data Attributes
+
+| Attribute | Value / Description |
+|-----------|---------------------|
+| `data-fullscreen` | Present when in fullscreen mode. |
+| `data-availability` | `"available"` \| `"unavailable"` \| `"unsupported"` — platform support status. |
+
+### CSS Styling Example
+
+```css
+/* Hide when unsupported */
+.fullscreen-button[data-availability="unsupported"] {
+  display: none;
+}
+
+/* Style when in fullscreen */
+.fullscreen-button[data-fullscreen] {
+  color: white;
+}
+```
+
+## Accessibility
+
+Renders a `<button>` element. The `aria-label` updates automatically: `"Enter fullscreen"` or `"Exit fullscreen"`. Keyboard activation: `Enter` / `Space`.

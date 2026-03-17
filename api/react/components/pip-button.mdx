@@ -1,0 +1,92 @@
+---
+title: "PiPButton"
+description: "Accessible picture-in-picture toggle button with platform availability detection."
+---
+
+`PiPButton` toggles picture-in-picture (PiP) mode. It detects platform support through an `availability` state — when PiP is `"unsupported"`, the toggle does nothing.
+
+<Note>
+  Requires the `pip` feature to be registered with the player.
+</Note>
+
+## Import
+
+```tsx
+import { PiPButton } from '@videojs/react';
+```
+
+## Basic Usage
+
+```tsx
+import { PiPButton } from '@videojs/react';
+
+function PlayerControls() {
+  return <PiPButton />;
+}
+```
+
+### Custom Render
+
+```tsx
+import { EnterPiPIcon, ExitPiPIcon } from './icons';
+import { PiPButton } from '@videojs/react';
+
+function PlayerControls() {
+  return (
+    <PiPButton
+      render={(props, state) => (
+        <button {...props}>
+          {state.pip ? <ExitPiPIcon /> : <EnterPiPIcon />}
+        </button>
+      )}
+    />
+  );
+}
+```
+
+## Props
+
+<ParamField path="render" type="ReactElement | ((props: HTMLProps, state: PiPButton.State) => ReactElement | null)">
+  Custom render prop. Receives the computed HTML props and current state.
+</ParamField>
+
+<ParamField path="label" type="string | ((state: PiPButton.State) => string)">
+  Override the automatic `aria-label`. By default: `"Enter PiP"` or `"Exit PiP"`.
+</ParamField>
+
+<ParamField path="disabled" type="boolean">
+  Disables the button.
+</ParamField>
+
+<ParamField path="className" type="string | ((state: PiPButton.State) => string)">
+  CSS class name or a function that receives state and returns a class name.
+</ParamField>
+
+<ParamField path="style" type="CSSProperties | ((state: PiPButton.State) => CSSProperties)">
+  Inline style or a function that receives state and returns a style object.
+</ParamField>
+
+## State Data Attributes
+
+| Attribute | Value / Description |
+|-----------|---------------------|
+| `data-pip` | Present when picture-in-picture mode is active. |
+| `data-availability` | `"available"` \| `"unavailable"` \| `"unsupported"` — platform support status. |
+
+### CSS Styling Example
+
+```css
+/* Hide when unsupported */
+.pip-button[data-availability="unsupported"] {
+  display: none;
+}
+
+/* Style when in PiP mode */
+.pip-button[data-pip] {
+  color: white;
+}
+```
+
+## Accessibility
+
+Renders a `<button>` element. The `aria-label` updates automatically: `"Enter PiP"` or `"Exit PiP"`. Keyboard activation: `Enter` / `Space`.

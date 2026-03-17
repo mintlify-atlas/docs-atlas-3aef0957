@@ -1,97 +1,142 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "Video.js v10"
+description: "Modern, modular media player framework for Web and React. Composable features, prebuilt skins, and built-in HLS/DASH streaming."
 ---
 
-## Setting up
+<Note>
+  **Beta** — Video.js v10 is close to stable. The API may evolve with feedback. See the [Changelog](https://github.com/videojs/v10/blob/main/CHANGELOG.md) and [Roadmap](/concepts/overview) for details.
+</Note>
 
-Get your documentation site up and running in minutes.
+Video.js v10 is a ground-up rewrite built around three ideas: composable features, multi-platform support (React and HTML custom elements), and a TypeScript-first API that tree-shakes down to only what you use.
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get a working player in under 5 minutes with React or HTML custom elements.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Core Concepts" icon="cube" href="/concepts/overview">
+    Understand features, presets, skins, and the three-part architecture.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="React Guide" icon="react" href="/guides/react">
+    Build a fully custom player with React hooks and components.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="HTML Guide" icon="code" href="/guides/html">
+    Use framework-free custom elements in any web project.
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## What's new in v10
 
-Everything you need to create world-class documentation.
+Video.js v10 is a complete rewrite that addresses the architectural constraints of v7/v8. The key changes:
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
+<CardGroup cols={2}>
+  <Card title="Composable features" icon="puzzle-piece">
+    Features are self-contained units of state and actions. Only include what your player needs — playback, volume, time, fullscreen, PiP, text tracks, and more.
   </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
+  <Card title="React-native support" icon="mobile">
+    First-class React components with hooks, context, and TypeScript generics. Minimal re-renders via selector-based subscriptions.
   </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
+  <Card title="HTML custom elements" icon="html5">
+    Framework-free web components that work in any environment. Use the CDN or npm, with automatic state reflection via data attributes.
   </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
+  <Card title="TypeScript-first" icon="file-code">
+    Full type safety across the entire API surface. Generic player types inferred from your feature set.
   </Card>
-</Columns>
+  <Card title="Tree-shakeable" icon="leaf">
+    Import only the features and components you use. No global registrations, no side effects unless you want them.
+  </Card>
+  <Card title="HLS & DASH built-in" icon="play">
+    First-class HLS (via hls.js) and DASH (via dash.js) support without additional plugins.
+  </Card>
+</CardGroup>
 
-## Need inspiration?
+## Install
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+<CodeGroup>
+```bash React
+npm install @videojs/react
+```
+```bash HTML (custom elements)
+npm install @videojs/html
+```
+</CodeGroup>
+
+Or use the CDN for HTML custom elements:
+
+```html
+<script type="module" src="https://cdn.jsdelivr.net/npm/@videojs/html/cdn/video/player.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@videojs/html/cdn/video/skin.css" />
+```
+
+## Quick example
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { createPlayer } from '@videojs/react';
+    import { videoFeatures, VideoSkin, Video } from '@videojs/react/video';
+    import '@videojs/react/video/skin.css';
+
+    const Player = createPlayer({ features: videoFeatures });
+
+    export function MyPlayer() {
+      return (
+        <Player.Provider>
+          <VideoSkin>
+            <Video src="https://stream.mux.com/example.m3u8" />
+          </VideoSkin>
+        </Player.Provider>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```html
+    <script type="module">
+      import '@videojs/html/video/player';
+      import '@videojs/html/video/skin';
+      import '@videojs/html/video/video';
+    </script>
+    <link rel="stylesheet" href="node_modules/@videojs/html/video/skin.css" />
+
+    <video-player>
+      <video-skin>
+        <hls-video slot="media" src="https://stream.mux.com/example.m3u8"></hls-video>
+      </video-skin>
+    </video-player>
+    ```
+  </Tab>
+</Tabs>
+
+## Packages
+
+<CardGroup cols={2}>
+  <Card title="@videojs/react" icon="react" href="/packages/react">
+    React components, hooks, and context for building players in React.
+  </Card>
+  <Card title="@videojs/html" icon="html5" href="/packages/html">
+    HTML custom elements for framework-free player development.
+  </Card>
+  <Card title="@videojs/core" icon="cube" href="/packages/core">
+    Runtime-agnostic core logic, features, and DOM bindings.
+  </Card>
+  <Card title="@videojs/store" icon="database" href="/packages/store">
+    Reactive state management with selector-based subscriptions.
+  </Card>
+  <Card title="@videojs/spf" icon="bolt" href="/packages/spf">
+    Stream Processing Framework for HLS and DASH.
+  </Card>
+  <Card title="@videojs/utils" icon="wrench" href="/packages/utils">
+    Shared utilities for DOM, events, and type predicates.
+  </Card>
+</CardGroup>
+
+## Community
+
+<CardGroup cols={2}>
+  <Card title="Discord" icon="discord" href="https://discord.gg/JBqHh485uF">
+    Join the Video.js community for help and discussion.
+  </Card>
+  <Card title="GitHub" icon="github" href="https://github.com/videojs/v10">
+    Report issues, request features, or contribute to the project.
+  </Card>
+</CardGroup>

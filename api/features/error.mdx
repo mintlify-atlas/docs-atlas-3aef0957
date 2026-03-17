@@ -1,0 +1,89 @@
+---
+title: "error"
+description: "Media error state for the player store"
+---
+
+Tracks media errors reported by the media element.
+
+## Import
+
+```ts
+import { error, selectError } from '@videojs/react';
+// or
+import { error, selectError } from '@videojs/html';
+```
+
+## Usage
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { createPlayer, error } from '@videojs/react';
+
+    const Player = createPlayer({
+      features: [error],
+    });
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import { createPlayer, error } from '@videojs/html';
+
+    const { ProviderMixin, PlayerController, context } = createPlayer({
+      features: [error],
+    });
+    ```
+  </Tab>
+</Tabs>
+
+## State
+
+<ResponseField name="error" type="MediaError | null">
+  The current media error object, or `null` when no error is present. The `MediaError` object includes a numeric `code` and a human-readable `message`.
+</ResponseField>
+
+## Actions
+
+<ResponseField name="dismissError()" type="() => void">
+  Clear the current error, resetting `error` to `null`.
+</ResponseField>
+
+## Selector
+
+Use `selectError` to subscribe to only the error slice of state. Returns `undefined` if the error feature is not configured.
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { selectError, usePlayer } from '@videojs/react';
+
+    function ErrorDisplay() {
+      const err = usePlayer(selectError);
+      if (!err?.error) return null;
+
+      return (
+        <div>
+          <p>{err.error.message}</p>
+          <button onClick={err.dismissError}>Dismiss</button>
+        </div>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import { createPlayer, MediaElement, selectError } from '@videojs/html';
+    import { videoFeatures } from '@videojs/html/video';
+
+    const { PlayerController, context } = createPlayer({ features: videoFeatures });
+
+    class ErrorDisplay extends MediaElement {
+      readonly #error = new PlayerController(this, context, selectError);
+    }
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+  Errors are set automatically by the media element. The only action available is `dismissError()` to clear the current error.
+</Note>

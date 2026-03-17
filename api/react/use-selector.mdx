@@ -1,0 +1,128 @@
+---
+title: "useSelector()"
+description: "Low-level hook for subscribing to external store state with full control over subscription plumbing and equality comparison."
+---
+
+`useSelector` is the low-level primitive that powers `useStore` and `useSnapshot`. It accepts explicit `subscribe` and `getSnapshot` functions, a `selector` to derive state, and an optional `isEqual` comparator. Most applications should use [`useStore`](/api/react/use-store) or `Player.usePlayer` instead.
+
+Exported from `@videojs/store/react` and re-exported from `@videojs/react`.
+
+```tsx
+import { useSelector, shallowEqual } from '@videojs/react';
+// or:
+import { useSelector } from '@videojs/store/react';
+```
+
+## Parameters
+
+<ParamField path="subscribe" type="(callback: () => void) => () => void" required>
+  A function that registers a callback to be invoked when the external store changes, and returns an unsubscribe function. Passed directly to React's `useSyncExternalStore`.
+
+  ```tsx
+  (cb) => store.subscribe(cb)
+  ```
+</ParamField>
+
+<ParamField path="getSnapshot" type="() => S" required>
+  A function that returns the current snapshot value from the external store. Must return a stable reference when the store has not changed.
+
+  ```tsx
+  () => store.state
+  ```
+</ParamField>
+
+<ParamField path="selector" type="(snapshot: S) => R" required>
+  Derives the value to return from the current snapshot. The hook re-renders the component only when the derived value changes (controlled by `isEqual`).
+
+  ```tsx
+  (state) => ({ current: state.currentTime, duration: state.duration })
+  ```
+</ParamField>
+
+<ParamField path="isEqual" type="(a: R, b: R) => boolean" default="shallowEqual">
+  Equality function used to determine if the derived value has changed. Defaults to `shallowEqual`, which compares object properties one level deep. Pass `Object.is` for reference equality, or a custom comparator for deeply nested structures.
+</ParamField>
+
+## Return value
+
+Returns `R` — the value derived by the `selector` from the latest snapshot.
+
+## Usage
+
+### Time display with custom subscription
+
+```tsx
+import { useSelector, shallowEqual } from '@videojs/react';
+
+function TimeDisplay({ store }) {
+  const time = useSelector(
+    (cb) => store.subscribe(cb),
+    () => store.state,
+    (state) => ({ current: state.currentTime, duration: state.duration }),
+    shallowEqual,
+  );
+
+  return (
+    <span>
+      {time.current} / {time.duration}
+    </span>
+  );
+}
+```
+
+### Custom equality comparison
+
+```tsx
+import { useSelector } from '@videojs/react';
+
+function TextTrackList({ store }) {
+  // Deep equality for nested arrays
+  const tracks = useSelector(
+    (cb) => store.subscribe(cb),
+    () => store.state,
+    (state) => state.textTracks,
+    (a, b) => a.length === b.length && a.every((t, i) => t.id === b[i].id),
+  );
+
+  return <ul>{tracks.map((t) => <li key={t.id}>{t.label}</li>)}</ul>;
+}
+```
+
+## Relationship to other hooks
+
+| Hook | Input | When to use |
+| --- | --- | --- |
+| `useStore(store, selector?)` | Store instance | Player and store access with optional selector |
+| `useSnapshot(state, selector?)` | `State` container | Subscribe to raw `State` changes |
+| `useSelector(subscribe, getSnapshot, selector, isEqual?)` | Custom subscribe/snapshot | Full control over subscription, non-standard sources |
+
+Prefer [`useStore`](/api/react/use-store) when working with a store instance, and `useSnapshot` when working with a `State` container. Reach for `useSelector` only when you need to integrate with a custom external source or require precise control over equality comparison.
+
+## Equality comparison
+
+The default `shallowEqual` compares the top-level properties of objects using `Object.is`, which is sufficient for most selector return values. For primitive returns (strings, numbers, booleans), equality is always reference equality.
+
+```tsx
+// shallowEqual — sufficient for flat objects
+(state) => ({ paused: state.paused, volume: state.volume })
+
+// Object.is — for primitives or when you want strict reference equality
+(state) => state.paused
+
+// Custom — for deeply nested structures
+(a, b) => JSON.stringify(a) === JSON.stringify(b)
+```
+
+## TypeScript signature
+
+```ts
+type Selector<S, R> = (state: S) => R;
+type Comparator<R> = (a: R, b: R) => boolean;
+
+function useSelector<S, R>(
+  subscribe: (cb: () => void) => () => void,
+  getSnapshot: () => S,
+  selector: Selector<S, R>,
+  isEqual?: Comparator<R>
+): R;
+```

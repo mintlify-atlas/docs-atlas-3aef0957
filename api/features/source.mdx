@@ -1,0 +1,84 @@
+---
+title: "source"
+description: "Media source state and actions for the player store"
+---
+
+Tracks the current media source URL and readiness.
+
+## Import
+
+```ts
+import { source, selectSource } from '@videojs/react';
+// or
+import { source, selectSource } from '@videojs/html';
+```
+
+## Usage
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { createPlayer, source } from '@videojs/react';
+
+    const Player = createPlayer({
+      features: [source],
+    });
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import { createPlayer, source } from '@videojs/html';
+
+    const { ProviderMixin, PlayerController, context } = createPlayer({
+      features: [source],
+    });
+    ```
+  </Tab>
+</Tabs>
+
+## State
+
+<ResponseField name="source" type="string | null">
+  The current media source URL, or `null` if no source has been loaded.
+</ResponseField>
+
+<ResponseField name="canPlay" type="boolean">
+  Whether enough data has been loaded to begin playback.
+</ResponseField>
+
+## Actions
+
+<ResponseField name="loadSource(src)" type="(src: string) => void">
+  Load a new media source by URL.
+</ResponseField>
+
+## Selector
+
+Use `selectSource` to subscribe to only the source slice of state. Returns `undefined` if the source feature is not configured.
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { selectSource, usePlayer } from '@videojs/react';
+
+    function SourceInfo() {
+      const source = usePlayer(selectSource);
+      if (!source) return null;
+
+      return <span>{source.source ?? 'No source'}</span>;
+    }
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import { createPlayer, MediaElement, selectSource } from '@videojs/html';
+    import { videoFeatures } from '@videojs/html/video';
+
+    const { PlayerController, context } = createPlayer({ features: videoFeatures });
+
+    class SourceInfo extends MediaElement {
+      readonly #source = new PlayerController(this, context, selectSource);
+    }
+    ```
+  </Tab>
+</Tabs>

@@ -1,0 +1,117 @@
+---
+title: "Time"
+description: "Time display components for showing current time, duration, and remaining time."
+---
+
+`Time` is a compound component for displaying formatted media time values. Three display types are supported: `current`, `duration`, and `remaining`.
+
+## Sub-components
+
+| Component | Description |
+|-----------|-------------|
+| `Time.Group` | Layout wrapper that synchronizes hour display across contained `Time.Value` elements. |
+| `Time.Value` | Renders a formatted time value as a `<time>` element. |
+| `Time.Separator` | Decorative separator between time values (e.g., `/`). `aria-hidden` by default. |
+
+<Note>
+  `Time.Value` requires the `time` feature to be registered with the player.
+</Note>
+
+## Import
+
+```tsx
+import { Time } from '@videojs/react';
+```
+
+## Basic Usage
+
+### Current Time
+
+```tsx
+import { Time } from '@videojs/react';
+
+function PlayerControls() {
+  return <Time.Value type="current" className="current-time" />;
+}
+```
+
+### Current / Duration
+
+```tsx
+import { Time } from '@videojs/react';
+
+function PlayerControls() {
+  return (
+    <Time.Group className="time-display">
+      <Time.Value type="current" />
+      <Time.Separator>/</Time.Separator>
+      <Time.Value type="duration" />
+    </Time.Group>
+  );
+}
+```
+
+### Remaining Time
+
+```tsx
+import { Time } from '@videojs/react';
+
+function PlayerControls() {
+  return <Time.Value type="remaining" negativeSign="−" className="remaining-time" />;
+}
+```
+
+## Time.Value Props
+
+<ParamField path="type" type='"current" | "duration" | "remaining"'>
+  Which time value to display. Defaults to `"current"`.
+</ParamField>
+
+<ParamField path="negativeSign" type="string">
+  Custom negative sign character for remaining time display. Defaults to `"-"`. The sign is rendered `aria-hidden` since `aria-valuetext` already conveys the remaining meaning.
+</ParamField>
+
+<ParamField path="label" type="string">
+  Override the automatic `aria-label`. By default: `"Current time"`, `"Duration"`, or `"Remaining"`.
+</ParamField>
+
+<ParamField path="className" type="string | ((state: Time.State) => string)">
+  CSS class name or a function that receives state and returns a class name.
+</ParamField>
+
+<ParamField path="style" type="CSSProperties | ((state: Time.State) => CSSProperties)">
+  Inline style or a function that receives state and returns a style object.
+</ParamField>
+
+<ParamField path="render" type="ReactElement | ((props: HTMLProps, state: Time.State) => ReactElement | null)">
+  Custom render prop.
+</ParamField>
+
+## Time.Group Props
+
+<ParamField path="children" type="ReactNode">
+  `Time.Value` and `Time.Separator` elements to group together.
+</ParamField>
+
+<ParamField path="className" type="string">
+  CSS class name for the group wrapper element.
+</ParamField>
+
+## Formatting
+
+Time values use digital format with smart padding:
+
+- **Hours** are never padded (`1:05:30`, not `01:05:30`)
+- **Minutes** are padded only when hours are shown (`1:05:30`, but `5:30`)
+- **Seconds** are always padded (`1:05`, not `1:5`)
+
+Hour display is triggered when either the current value or the duration exceeds 1 hour, ensuring consistency within a `Time.Group`.
+
+## Accessibility
+
+Each `Time.Value` element has:
+- `aria-label` for the static role label (`"Current time"`, `"Duration"`, `"Remaining"`)
+- `aria-valuetext` for the dynamic human-readable time (e.g., `"1 minute, 30 seconds"`)
+- `datetime` attribute on the `<time>` element for machine-readable time
+
+No `aria-live` region is used — time updates too frequently and would overwhelm screen readers. `Time.Separator` is `aria-hidden="true"` since screen readers hear each value separately.

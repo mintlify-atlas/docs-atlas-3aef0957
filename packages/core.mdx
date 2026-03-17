@@ -1,0 +1,103 @@
+---
+title: "@videojs/core"
+description: "Runtime-agnostic core logic, feature definitions, and DOM bindings shared across all Video.js platform packages."
+---
+
+<Note>
+  **Beta** — `@videojs/core` is close to stable. Experimental adoption in real projects is welcome.
+</Note>
+
+`@videojs/core` provides the foundational building blocks used by platform-specific implementations (DOM, HTML, React, React Native) to create consistent media player experiences. It contains feature definitions, feature state types, and core player logic that remains independent of any rendering environment.
+
+In the dependency hierarchy, `@videojs/core` sits above `@videojs/utils` and `@videojs/store`, and below the platform packages `@videojs/html` and `@videojs/react`.
+
+```text
+utils ← store ← core ← html / react / react-native
+```
+
+## Installation
+
+<CodeGroup>
+
+```bash npm
+npm install @videojs/core
+```
+
+```bash pnpm
+pnpm add @videojs/core
+```
+
+```bash yarn
+yarn add @videojs/core
+```
+
+```bash bun
+bun add @videojs/core
+```
+
+</CodeGroup>
+
+## Exports
+
+| Entry point | Description |
+|---|---|
+| `.` | Main entry — runtime-agnostic core logic, feature definitions, and state types |
+| `./dom` | DOM bindings — connects core features to the browser environment |
+| `./dom/media/*` | Media-specific DOM modules (e.g. HLS, DASH playback adapters) |
+
+### Main entry (`.`)
+
+The default import provides runtime-agnostic player logic and feature primitives that work in any JavaScript environment.
+
+```typescript
+import { createFeature } from '@videojs/core';
+
+const myFeature = createFeature({
+  id: 'my-feature',
+  // feature definition
+});
+```
+
+### DOM bindings (`./dom`)
+
+The `./dom` subpath exports bindings that connect core player state to the browser DOM. Import this in browser environments when you need to wire up DOM elements to player features.
+
+```typescript
+import '@videojs/core/dom';
+```
+
+### Media DOM modules (`./dom/media/*`)
+
+Media-specific modules provide DOM-level adapters for specific playback formats. These are used internally by `@videojs/html` and `@videojs/react`.
+
+```typescript
+import '@videojs/core/dom/media/hls';
+import '@videojs/core/dom/media/dash';
+```
+
+## Dependencies
+
+| Package | Role |
+|---|---|
+| `@videojs/spf` | Stream Processing Framework — unified HLS/DASH interface |
+| `@videojs/store` | Reactive state management |
+| `@videojs/utils` | Shared utility functions |
+| `dashjs` | MPEG-DASH playback engine |
+| `hls.js` | HLS playback engine |
+
+## Related packages
+
+<CardGroup cols={2}>
+  <Card title="@videojs/html" icon="code" href="/packages/html">
+    Web Components implementation built on top of core.
+  </Card>
+  <Card title="@videojs/react" icon="code" href="/packages/react">
+    React components and hooks built on top of core.
+  </Card>
+  <Card title="@videojs/store" icon="database" href="/packages/store">
+    Reactive state management used by core.
+  </Card>
+  <Card title="@videojs/spf" icon="bolt" href="/packages/spf">
+    Stream Processing Framework used by core.
+  </Card>
+</CardGroup>

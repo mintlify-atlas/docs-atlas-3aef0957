@@ -1,0 +1,61 @@
+---
+title: "Introduction"
+description: "Video.js v10 is a modern, modular media player framework for Web and React — built for composability, TypeScript-first development, and multi-platform delivery."
+---
+
+<Warning>
+Video.js v10 is currently in **beta**. The API may evolve before the stable release. General availability is targeted for mid-2026.
+</Warning>
+
+Video.js v10 is a complete rewrite of the Video.js media player — redesigned from the ground up as a composable framework rather than a monolithic library. It separates state management, UI, and media into distinct, swappable layers so you can use as much or as little as you need.
+
+## Three-part architecture
+
+Every Video.js v10 player is made of three cooperating parts:
+
+**1. State management** — A central store that tracks playback state (paused, volume, time, fullscreen, etc.) and exposes actions. In React, this is `Player.Provider`. In HTML, it's the `<video-player>` custom element. All UI components connect to this store automatically.
+
+**2. User interface** — Either a pre-built **skin** that packages a complete, styled UI, or individual **UI components** assembled by hand. Skins are designed for their matching feature bundle, and can be ejected for full customization.
+
+**3. Media** — Components that handle the actual rendering of video or audio. Media components are format-specific (HLS, DASH) or service-specific (YouTube, Mux) and are easily swappable without touching the rest of the player.
+
+These three layers are bundled into **presets** — pre-packaged configurations for specific use cases like `/video`, `/audio`, and `/background`.
+
+## Key features
+
+- **Composable presets** — Start with a preset that matches your use case, then extend the feature bundle, swap the skin, or replace the media element.
+- **Multi-platform** — Idiomatic React components (`@videojs/react`) and framework-free HTML custom elements (`@videojs/html`) share the same core.
+- **TypeScript-first** — Every package ships with full type definitions. The component and hook APIs are typed end-to-end.
+- **HLS and DASH built-in** — `@videojs/core` bundles [hls.js](https://github.com/video-dev/hls.js) and [dash.js](https://github.com/Dash-Industry-Forum/dash.js) so adaptive streaming works out of the box.
+- **Accessible by default** — Controls follow WAI-ARIA authoring practices with keyboard navigation and focus management.
+- **Minimal bundle** — Tree-shaking and subpath exports (`/video`, `/audio`, `/background`) keep unused code out of your bundle.
+
+## Package overview
+
+| Package | Description |
+|---|---|
+| `@videojs/react` | React player — composable components, hooks, and TypeScript types |
+| `@videojs/html` | HTML player — framework-free custom elements for any web environment |
+| `@videojs/core` | Runtime-agnostic logic: features, state actions, HLS/DASH integration |
+| `@videojs/store` | Reactive state management with React and HTML platform bindings |
+| `@videojs/spf` | Stream Processing Framework — adaptive streaming playback engine |
+| `@videojs/utils` | Shared utilities: DOM helpers, predicates, event utilities |
+
+Most users only install `@videojs/react` or `@videojs/html`. The other packages are used internally and also available for advanced use cases.
+
+## Explore further
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get a working player running in under 5 minutes — React or plain HTML.
+  </Card>
+  <Card title="Architecture overview" icon="layers" href="/concepts/overview">
+    Learn how state, UI, and media layers work together.
+  </Card>
+  <Card title="React guide" icon="atom" href="/guides/react">
+    Full guide to building players with `@videojs/react`.
+  </Card>
+  <Card title="HTML guide" icon="code" href="/guides/html">
+    Full guide to building players with `@videojs/html` custom elements.
+  </Card>
+</CardGroup>

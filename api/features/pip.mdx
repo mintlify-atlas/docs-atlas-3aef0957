@@ -1,0 +1,105 @@
+---
+title: "pip"
+description: "Picture-in-picture state and actions for the player store"
+---
+
+Controls picture-in-picture mode. Required by `PiPButton`.
+
+## Import
+
+```ts
+import { pip, selectPiP } from '@videojs/react';
+// or
+import { pip, selectPiP } from '@videojs/html';
+```
+
+## Usage
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { createPlayer, pip } from '@videojs/react';
+
+    const Player = createPlayer({
+      features: [pip],
+    });
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import { createPlayer, pip } from '@videojs/html';
+
+    const { ProviderMixin, PlayerController, context } = createPlayer({
+      features: [pip],
+    });
+    ```
+  </Tab>
+</Tabs>
+
+## State
+
+<ResponseField name="pip" type="boolean">
+  Whether the player is currently in picture-in-picture mode.
+</ResponseField>
+
+<ResponseField name="pipAvailability" type="MediaFeatureAvailability">
+  Whether picture-in-picture is supported in the current environment.
+
+  Possible values:
+  - `'available'` — Ready to use
+  - `'unavailable'` — Could work but not ready yet
+  - `'unsupported'` — Platform can never support PiP (e.g. iOS Safari)
+</ResponseField>
+
+## Actions
+
+<ResponseField name="requestPictureInPicture()" type="() => Promise<void>">
+  Enter picture-in-picture mode. Returns a promise that resolves when PiP is active.
+</ResponseField>
+
+<ResponseField name="exitPictureInPicture()" type="() => Promise<void>">
+  Exit picture-in-picture mode. Returns a promise that resolves when PiP is exited.
+</ResponseField>
+
+## Selector
+
+Use `selectPiP` to subscribe to only the PiP slice of state. Returns `undefined` if the pip feature is not configured.
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { selectPiP, usePlayer } from '@videojs/react';
+
+    function PiPButton() {
+      const pip = usePlayer(selectPiP);
+      if (!pip || pip.pipAvailability !== 'available') return null;
+
+      return (
+        <button onClick={pip.pip ? pip.exitPictureInPicture : pip.requestPictureInPicture}>
+          {pip.pip ? 'Exit PiP' : 'Picture-in-Picture'}
+        </button>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import { createPlayer, MediaElement, selectPiP } from '@videojs/html';
+    import { videoFeatures } from '@videojs/html/video';
+
+    const { PlayerController, context } = createPlayer({ features: videoFeatures });
+
+    class PiPButton extends MediaElement {
+      readonly #pip = new PlayerController(this, context, selectPiP);
+    }
+    ```
+  </Tab>
+</Tabs>
+
+<Warning>
+  Picture-in-picture is not available on iOS Safari. Check `pipAvailability` before calling `requestPictureInPicture()`.
+</Warning>
+
+<Note>
+  Required by: `PiPButton`
+</Note>

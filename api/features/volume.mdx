@@ -1,0 +1,107 @@
+---
+title: "volume"
+description: "Volume level and mute state for the player store"
+---
+
+Controls volume level and mute state. Required by `MuteButton` and `VolumeSlider` components.
+
+## Import
+
+```ts
+import { volume, selectVolume } from '@videojs/react';
+// or
+import { volume, selectVolume } from '@videojs/html';
+```
+
+## Usage
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { createPlayer, volume } from '@videojs/react';
+
+    const Player = createPlayer({
+      features: [volume],
+    });
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import { createPlayer, volume } from '@videojs/html';
+
+    const { ProviderMixin, PlayerController, context } = createPlayer({
+      features: [volume],
+    });
+    ```
+  </Tab>
+</Tabs>
+
+## State
+
+<ResponseField name="volume" type="number">
+  Current volume level from `0` (silent) to `1` (maximum).
+</ResponseField>
+
+<ResponseField name="muted" type="boolean">
+  Whether audio is currently muted.
+</ResponseField>
+
+<ResponseField name="volumeAvailability" type="MediaFeatureAvailability">
+  Whether volume control is supported on this platform. iOS Safari does not allow programmatic volume control.
+
+  Possible values: `'available'` | `'unavailable'` | `'unsupported'`
+</ResponseField>
+
+## Actions
+
+<ResponseField name="setVolume(volume)" type="(volume: number) => void">
+  Set the volume level. The value is clamped to the range `0`–`1`. Automatically unmutes when raised above zero.
+</ResponseField>
+
+<ResponseField name="toggleMuted()" type="() => void">
+  Toggle mute on or off. Restores volume to `0.25` when unmuting at zero.
+</ResponseField>
+
+## Selector
+
+Use `selectVolume` to subscribe to only the volume slice of state. Returns `undefined` if the volume feature is not configured.
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { selectVolume, usePlayer } from '@videojs/react';
+
+    function VolumeSlider() {
+      const vol = usePlayer(selectVolume);
+      if (!vol) return null;
+
+      return (
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.01}
+          value={vol.volume}
+          onChange={(e) => vol.setVolume(Number(e.target.value))}
+        />
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import { createPlayer, MediaElement, selectVolume } from '@videojs/html';
+    import { videoFeatures } from '@videojs/html/video';
+
+    const { PlayerController, context } = createPlayer({ features: videoFeatures });
+
+    class VolumeSlider extends MediaElement {
+      readonly #volume = new PlayerController(this, context, selectVolume);
+    }
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+  Required by: `MuteButton`, `VolumeSlider`
+</Note>

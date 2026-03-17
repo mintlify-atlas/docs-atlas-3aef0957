@@ -1,0 +1,92 @@
+---
+title: "CaptionsButton"
+description: "Accessible captions toggle button with availability detection and active state reflection."
+---
+
+`CaptionsButton` toggles captions and subtitles on and off. It checks the media's text track list for tracks with `kind="captions"` or `kind="subtitles"` and reflects availability via a data attribute.
+
+<Note>
+  Requires the `textTracks` feature to be registered with the player.
+</Note>
+
+## Import
+
+```tsx
+import { CaptionsButton } from '@videojs/react';
+```
+
+## Basic Usage
+
+```tsx
+import { CaptionsButton } from '@videojs/react';
+
+function PlayerControls() {
+  return <CaptionsButton />;
+}
+```
+
+### Custom Render
+
+```tsx
+import { CaptionsOnIcon, CaptionsOffIcon } from './icons';
+import { CaptionsButton } from '@videojs/react';
+
+function PlayerControls() {
+  return (
+    <CaptionsButton
+      render={(props, state) => (
+        <button {...props}>
+          {state.active ? <CaptionsOnIcon /> : <CaptionsOffIcon />}
+        </button>
+      )}
+    />
+  );
+}
+```
+
+## Props
+
+<ParamField path="render" type="ReactElement | ((props: HTMLProps, state: CaptionsButton.State) => ReactElement | null)">
+  Custom render prop. Receives the computed HTML props and current state.
+</ParamField>
+
+<ParamField path="label" type="string | ((state: CaptionsButton.State) => string)">
+  Override the automatic `aria-label`. By default: `"Enable captions"` or `"Disable captions"`.
+</ParamField>
+
+<ParamField path="disabled" type="boolean">
+  Disables the button.
+</ParamField>
+
+<ParamField path="className" type="string | ((state: CaptionsButton.State) => string)">
+  CSS class name or a function that receives state and returns a class name.
+</ParamField>
+
+<ParamField path="style" type="CSSProperties | ((state: CaptionsButton.State) => CSSProperties)">
+  Inline style or a function that receives state and returns a style object.
+</ParamField>
+
+## State Data Attributes
+
+| Attribute | Value / Description |
+|-----------|---------------------|
+| `data-active` | Present when captions/subtitles are currently enabled. |
+| `data-availability` | `"available"` \| `"unavailable"` — whether any caption or subtitle tracks exist. |
+
+### CSS Styling Example
+
+```css
+/* Hide when no caption tracks are available */
+.captions-button[data-availability="unavailable"] {
+  display: none;
+}
+
+/* Active state */
+.captions-button[data-active] {
+  color: yellow;
+}
+```
+
+## Accessibility
+
+Renders a `<button>` element. The `aria-label` updates automatically: `"Enable captions"` or `"Disable captions"`. Keyboard activation: `Enter` / `Space`.

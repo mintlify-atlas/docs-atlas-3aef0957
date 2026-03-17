@@ -1,0 +1,183 @@
+---
+title: "Skins"
+description: "Complete pre-designed player UIs that package components and styles together."
+---
+
+<Note>
+  **New in version 10:** In prior versions of Video.js, skins were CSS-only themes applied to the same default controls. In version 10, skins include the UI components themselves — each skin can be completely unique and include only the components it needs.
+</Note>
+
+A skin wraps your media element and provides the full player UI:
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    <Player.Provider>
+      <VideoSkin>
+        {/* wraps the Media component */}
+        <Video src="video.mp4" />
+      </VideoSkin>
+    </Player.Provider>
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```html
+    <video-player>
+      <video-skin>
+        <!-- wraps the media element -->
+        <video slot="media" src="video.mp4"></video>
+      </video-skin>
+    </video-player>
+    ```
+  </Tab>
+</Tabs>
+
+## Packaged vs. ejected
+
+When you use a skin, you have two options: **packaged** or **ejected**. It's usually easiest to start packaged and eject later when you need more customization.
+
+| | Packaged | Ejected |
+|--|----------|----------|
+| **Components** | Single component | Many UI components |
+| **Customization** | Limited | Complete |
+| **Design updates** | Auto-applied on version bump | Applied manually, or intentionally ignored |
+
+### Packaged
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    <Player.Provider>
+      <VideoSkin>
+        {/* ...Media... */}
+      </VideoSkin>
+    </Player.Provider>
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```html
+    <video-player>
+      <video-skin>
+        <!--...Media...-->
+      </video-skin>
+    </video-player>
+    ```
+  </Tab>
+</Tabs>
+
+### Ejected
+
+When you eject a skin, you get the individual components and their markup. You can then customize each piece independently.
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    <Player.Provider>
+      <Container className={cn('media-minimal-skin', className)} {...rest}>
+        <BufferingIndicator
+          render={(props) => (
+            <div {...props} className="media-buffering-indicator">
+              <SpinnerIcon className="media-icon" />
+            </div>
+          )}
+        />
+
+        <Controls.Root className="media-controls">
+          <PlayButton
+            render={(props) => (
+              <Button {...props} className="media-button--icon media-button--play">
+                <PlayIcon className="media-icon media-icon--play" />
+                <PauseIcon className="media-icon media-icon--pause" />
+              </Button>
+            )}
+          />
+
+          <TimeSlider.Root className="media-slider">
+            <TimeSlider.Track className="media-slider__track">
+              <TimeSlider.Fill className="media-slider__fill" />
+              <TimeSlider.Buffer className="media-slider__buffer" />
+            </TimeSlider.Track>
+            <TimeSlider.Thumb className="media-slider__thumb" />
+          </TimeSlider.Root>
+
+          <MuteButton
+            render={(props) => (
+              <Button {...props} className="media-button--icon media-button--mute">
+                <VolumeOffIcon className="media-icon media-icon--volume-off" />
+                <VolumeHighIcon className="media-icon media-icon--volume-high" />
+              </Button>
+            )}
+          />
+
+          <FullscreenButton
+            render={(props) => (
+              <Button {...props} className="media-button--icon media-button--fullscreen">
+                <FullscreenEnterIcon className="media-icon media-icon--fullscreen-enter" />
+                <FullscreenExitIcon className="media-icon media-icon--fullscreen-exit" />
+              </Button>
+            )}
+          />
+        </Controls.Root>
+      </Container>
+    </Player.Provider>
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```html
+    <video-player>
+      <media-container class="media-default-skin">
+        <!-- ...Media... -->
+
+        <media-buffering-indicator class="media-buffering-indicator"></media-buffering-indicator>
+
+        <media-controls class="media-surface media-controls" data-visible="">
+          <media-play-button class="media-button media-button--icon media-button--play"
+            role="button" tabindex="0" aria-label="Play" data-paused="">
+          </media-play-button>
+
+          <media-time-slider class="media-slider">
+            <media-slider-track class="media-slider__track">
+              <media-slider-fill class="media-slider__fill"></media-slider-fill>
+              <media-slider-buffer class="media-slider__buffer"></media-slider-buffer>
+            </media-slider-track>
+            <media-slider-thumb class="media-slider__thumb"></media-slider-thumb>
+          </media-time-slider>
+
+          <media-mute-button class="media-button media-button--icon media-button--mute"
+            role="button" tabindex="0" aria-label="Mute">
+          </media-mute-button>
+
+          <media-fullscreen-button class="media-button media-button--icon media-button--fullscreen"
+            role="button" tabindex="0" aria-label="Enter fullscreen">
+          </media-fullscreen-button>
+        </media-controls>
+      </media-container>
+    </video-player>
+    ```
+  </Tab>
+</Tabs>
+
+See [UI components](/concepts/ui-components) for the full list of building blocks.
+
+## Skins, features, and presets
+
+Each skin is built with specific [features](/concepts/features) in mind. A video skin renders fullscreen and picture-in-picture controls. An audio skin doesn't. The features associated with a skin are called a **feature bundle**.
+
+<Tabs>
+  <Tab title="React">
+    | Feature bundle | Available skins | Import |
+    |----------|-----------------|--------|
+    | `videoFeatures` | `<VideoSkin>`, `<MinimalVideoSkin>` | `@videojs/react/video` |
+    | `audioFeatures` | `<AudioSkin>`, `<MinimalAudioSkin>` | `@videojs/react/audio` |
+    | `backgroundFeatures` | `<BackgroundVideoSkin>` | `@videojs/react/background` |
+  </Tab>
+  <Tab title="HTML">
+    | Player with feature bundle | Available skins | Import |
+    |----------|-----------------|--------|
+    | `<video-player>` | `<video-skin>`, `<video-minimal-skin>` | `@videojs/html/video/*` |
+    | `<audio-player>` | `<audio-skin>`, `<audio-minimal-skin>` | `@videojs/html/audio/*` |
+    | `<background-video-player>` | `<background-video-skin>` | `@videojs/html/background/*` |
+  </Tab>
+</Tabs>
+
+See [Presets](/concepts/presets) to learn more about skins and feature bundles.

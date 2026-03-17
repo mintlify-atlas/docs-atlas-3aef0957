@@ -1,0 +1,104 @@
+---
+title: "playback"
+description: "Play/pause state and controls for the player store"
+---
+
+Controls play/pause state and tracks whether playback has started or is stalled. Required by `PlayButton` and buffering indicator components.
+
+## Import
+
+```ts
+import { playback, selectPlayback } from '@videojs/react';
+// or
+import { playback, selectPlayback } from '@videojs/html';
+```
+
+## Usage
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { createPlayer, playback } from '@videojs/react';
+
+    const Player = createPlayer({
+      features: [playback],
+    });
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import { createPlayer, playback } from '@videojs/html';
+
+    const { ProviderMixin, PlayerController, context } = createPlayer({
+      features: [playback],
+    });
+    ```
+  </Tab>
+</Tabs>
+
+## State
+
+<ResponseField name="paused" type="boolean">
+  Whether playback is currently paused.
+</ResponseField>
+
+<ResponseField name="ended" type="boolean">
+  Whether playback has reached the end of the media.
+</ResponseField>
+
+<ResponseField name="started" type="boolean">
+  Whether playback has started (played or seeked at least once).
+</ResponseField>
+
+<ResponseField name="waiting" type="boolean">
+  Whether playback is stalled waiting for more data to buffer.
+</ResponseField>
+
+## Actions
+
+<ResponseField name="play()" type="() => Promise<void>">
+  Start playback. Returns a promise that resolves when playback begins.
+</ResponseField>
+
+<ResponseField name="pause()" type="() => void">
+  Pause playback.
+</ResponseField>
+
+## Selector
+
+Use `selectPlayback` to subscribe to only the playback slice of state. Returns `undefined` if the playback feature is not configured.
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { selectPlayback, usePlayer } from '@videojs/react';
+
+    function PlayButton() {
+      const playback = usePlayer(selectPlayback);
+      if (!playback) return null;
+
+      return (
+        <button onClick={playback.paused ? playback.play : playback.pause}>
+          {playback.paused ? 'Play' : 'Pause'}
+        </button>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import { createPlayer, MediaElement, selectPlayback } from '@videojs/html';
+    import { videoFeatures } from '@videojs/html/video';
+
+    const { PlayerController, context } = createPlayer({ features: videoFeatures });
+
+    class PlayButton extends MediaElement {
+      readonly #playback = new PlayerController(this, context, selectPlayback);
+    }
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+  Required by: `PlayButton`, `BufferingIndicator`
+</Note>

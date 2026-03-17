@@ -1,0 +1,128 @@
+---
+title: "StoreController"
+description: "Reactive controller for accessing store state and actions in HTML custom elements."
+---
+
+`StoreController` is a reactive controller for accessing store state and actions in custom elements. It accepts a store instance or a context and resolves the store automatically.
+
+- **Without a selector** — returns the store instance directly. Does **not** subscribe to changes. Use this to access store actions.
+- **With a selector** — returns the selected value and subscribes to changes. Triggers a host update when the selected value changes (shallow equality).
+
+## Signature
+
+```ts
+import { StoreController } from '@videojs/store/html';
+
+class StoreController<Store extends AnyStore, Result = Store>
+  implements ReactiveController
+```
+
+## Constructor
+
+<Tabs>
+  <Tab title="Without selector">
+    ```ts
+    new StoreController(host, source)
+    ```
+
+    <ParamField body="host" type="StoreControllerHost" required>
+      The host element (`ReactiveControllerHost & HTMLElement`) that owns this controller. Typically `this` inside a custom element class.
+    </ParamField>
+
+    <ParamField body="source" type="StoreSource<Store>" required>
+      A store instance or a context object. When a context is provided, the store is resolved from the nearest provider in the DOM tree.
+    </ParamField>
+  </Tab>
+  <Tab title="With selector">
+    ```ts
+    new StoreController(host, source, selector)
+    ```
+
+    <ParamField body="host" type="StoreControllerHost" required>
+      The host element (`ReactiveControllerHost & HTMLElement`) that owns this controller. Typically `this` inside a custom element class.
+    </ParamField>
+
+    <ParamField body="source" type="StoreSource<Store>" required>
+      A store instance or a context object. When a context is provided, the store is resolved from the nearest provider in the DOM tree.
+    </ParamField>
+
+    <ParamField body="selector" type="Selector<InferStoreState<Store>, Result>" required>
+      A function that derives a value from the store state. The host is re-rendered only when the derived value changes (shallow equality).
+    </ParamField>
+  </Tab>
+</Tabs>
+
+## Properties
+
+<ResponseField name="value" type="Result">
+  The current value:
+
+  - Without a selector: the store instance.
+  - With a selector: the return value of the selector applied to the current state.
+
+  Throws if the store is not yet available (e.g., the host is disconnected and no store was resolved).
+</ResponseField>
+
+## Usage
+
+### Accessing actions (without selector)
+
+Without a selector, `StoreController` returns the store and does not subscribe to updates. Use this to dispatch actions imperatively.
+
+```ts
+import { StoreController } from '@videojs/store/html';
+
+class VolumeControl extends HTMLElement {
+  readonly #store = new StoreController(this, storeSource);
+
+  connectedCallback() {
+    this.addEventListener('click', this.#handleClick);
+  }
+
+  #handleClick = () => {
+    this.#store.value.setVolume(0.5);
+  };
+}
+
+customElements.define('volume-control', VolumeControl);
+```
+
+### Subscribing to state (with selector)
+
+With a selector, `StoreController` subscribes to the store and triggers a host update whenever the selected value changes.
+
+```ts
+import { StoreController } from '@videojs/store/html';
+
+class PlayButton extends HTMLElement {
+  readonly #playback = new StoreController(this, storeSource, selectPlayback);
+
+  render() {
+    const playback = this.#playback.value;
+    this.textContent = playback.paused ? 'Play' : 'Pause';
+  }
+
+  connectedCallback() {
+    this.addEventListener('click', () => this.#playback.value.toggle());
+  }
+}
+
+customElements.define('play-button', PlayButton);
+```
+
+## StoreController vs PlayerController vs SnapshotController
+
+| | `StoreController` | `PlayerController` | `SnapshotController` |
+|---|---|---|---|
+| **Input** | Any store or context | Player store context | `State<T>` container |
+| **Typed to** | Generic store | Player features | Raw state |
+| **Resolves store** | Yes (from context) | Yes (from player context) | No |
+| **Use case** | General-purpose store access | Player UI elements | Low-level state subscription |
+
+[`PlayerController`](/api/html/player-controller) is a typed wrapper around `StoreController` scoped to the player store. For player UI, prefer `PlayerController`. Use `StoreController` when working with a custom store outside the player system.
+
+When you pass a selector, `StoreController` internally creates a [`SnapshotController`](/api/html/snapshot-controller) on `store.$state`. Without a selector, no subscription is created.
+
+<Note>
+  `StoreController.value` throws if the store is not available. Without a selector, guard access with a conditional or call `.value` only inside event handlers where the element is guaranteed to be connected.
+</Note>

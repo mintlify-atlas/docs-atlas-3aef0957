@@ -1,0 +1,104 @@
+---
+title: "textTracks"
+description: "Subtitles, captions, and chapter track state for the player store"
+---
+
+Manages subtitles, captions, chapters, and thumbnail tracks. Required by `CaptionsButton`.
+
+## Import
+
+```ts
+import { textTracks, selectTextTracks } from '@videojs/react';
+// or
+import { textTracks, selectTextTracks } from '@videojs/html';
+```
+
+## Usage
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { createPlayer, textTracks } from '@videojs/react';
+
+    const Player = createPlayer({
+      features: [textTracks],
+    });
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import { createPlayer, textTracks } from '@videojs/html';
+
+    const { ProviderMixin, PlayerController, context } = createPlayer({
+      features: [textTracks],
+    });
+    ```
+  </Tab>
+</Tabs>
+
+## State
+
+<ResponseField name="textTrackList" type="MediaTextTrack[]">
+  All text tracks attached to the media element.
+</ResponseField>
+
+<ResponseField name="subtitlesShowing" type="boolean">
+  Whether captions or subtitles are currently enabled.
+</ResponseField>
+
+<ResponseField name="chaptersCues" type="MediaTextCue[]">
+  Cues from the first chapters track, used for chapter navigation.
+</ResponseField>
+
+<ResponseField name="thumbnailCues" type="MediaTextCue[]">
+  Cues from the first thumbnails track, used for seek previews.
+</ResponseField>
+
+<ResponseField name="thumbnailTrackSrc" type="string | null">
+  The `src` attribute of the thumbnail track, used to resolve relative thumbnail URLs.
+</ResponseField>
+
+## Actions
+
+<ResponseField name="toggleSubtitles(forceShow?)" type="(forceShow?: boolean) => void">
+  Toggle subtitle and caption visibility. Pass `true` to force show, `false` to force hide.
+</ResponseField>
+
+## Selector
+
+Use `selectTextTracks` to subscribe to only the text tracks slice of state. Returns `undefined` if the textTracks feature is not configured.
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { selectTextTracks, usePlayer } from '@videojs/react';
+
+    function CaptionsButton() {
+      const tracks = usePlayer(selectTextTracks);
+      if (!tracks) return null;
+
+      return (
+        <button onClick={() => tracks.toggleSubtitles()}>
+          {tracks.subtitlesShowing ? 'Hide captions' : 'Show captions'}
+        </button>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import { createPlayer, MediaElement, selectTextTracks } from '@videojs/html';
+    import { videoFeatures } from '@videojs/html/video';
+
+    const { PlayerController, context } = createPlayer({ features: videoFeatures });
+
+    class CaptionsButton extends MediaElement {
+      readonly #textTracks = new PlayerController(this, context, selectTextTracks);
+    }
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+  Required by: `CaptionsButton`
+</Note>

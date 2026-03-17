@@ -1,0 +1,228 @@
+---
+title: "UI components"
+description: "Building blocks for custom player UIs — one element per component, data attributes for state, and compound composition."
+---
+
+UI components are controls like buttons, sliders, and time displays. Every UI component renders exactly one HTML element, giving you full control over styling and behavior while handling complex interactions for you.
+
+## Where to put components
+
+<Tabs>
+  <Tab title="React">
+    UI components can go anywhere inside a `<Player.Provider>`.
+
+    However, place your components inside `<Player.Container>` so they go fullscreen with the player, respond to user activity, and more.
+
+    ```tsx
+    <Player.Provider>
+      <Player.Container>
+        <Video src="video.mp4" />
+        <PlayButton />
+        <TimeSlider.Root>
+          <TimeSlider.Track>
+            <TimeSlider.Fill />
+          </TimeSlider.Track>
+          <TimeSlider.Thumb />
+        </TimeSlider.Root>
+      </Player.Container>
+    </Player.Provider>
+    ```
+  </Tab>
+  <Tab title="HTML">
+    UI components can go anywhere inside a `<video-player>`.
+
+    However, place your components inside `<media-container>` so they go fullscreen with the player, respond to user activity, and more.
+
+    ```html
+    <video-player>
+      <media-container>
+        <video slot="media" src="video.mp4"></video>
+        <media-play-button></media-play-button>
+        <media-time-slider>
+          <media-slider-track>
+            <media-slider-fill></media-slider-fill>
+          </media-slider-track>
+          <media-slider-thumb></media-slider-thumb>
+        </media-time-slider>
+      </media-container>
+    </video-player>
+    ```
+  </Tab>
+</Tabs>
+
+## Styling and customization
+
+### Data attributes
+
+Components reflect player state as `data-*` attributes on their element. For example, `data-paused` or `data-volume-level="high"`.
+
+This lets you style state changes in pure CSS:
+
+<Tabs>
+  <Tab title="React">
+    ```css
+    /* Show/hide icons based on play state */
+    .play-icon  { display: none; }
+    .pause-icon { display: none; }
+
+    button[data-paused] .play-icon        { display: inline; }
+    button:not([data-paused]) .pause-icon { display: inline; }
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```html
+    <media-play-button class="my-play-button">
+      <span class="play-icon">Play</span>
+      <span class="pause-icon">Pause</span>
+    </media-play-button>
+    ```
+
+    ```css
+    media-play-button .play-icon  { display: none; }
+    media-play-button .pause-icon { display: none; }
+
+    media-play-button[data-paused] .play-icon        { display: inline; }
+    media-play-button:not([data-paused]) .pause-icon  { display: inline; }
+    ```
+  </Tab>
+</Tabs>
+
+Some components also expose **CSS custom properties** for continuous values like fill percentage and pointer position. Sliders set `--media-slider-fill` and `--media-slider-pointer`. See individual component reference pages for specifics.
+
+### The `render` prop (React)
+
+The `render` prop is the primary customization mechanism in React. It accepts a function that receives `props` and `state`, and returns your element. Always spread `{...props}` to keep event handlers, ARIA attributes, and data attributes working:
+
+```tsx
+<PlayButton
+  render={(props, state) => (
+    <button {...props}>
+      {state.paused ? 'Play' : 'Pause'}
+    </button>
+  )}
+/>
+```
+
+`className` and `style` also accept functions of state for dynamic styling without a full render prop:
+
+```tsx
+<PlayButton
+  className={(state) =>
+    state.paused ? 'btn btn--paused' : 'btn btn--playing'
+  }
+/>
+```
+
+## Compound components
+
+Complex interactions are split into composable parts. A parent manages shared state while children consume it. Each part still renders exactly one element.
+
+<Tabs>
+  <Tab title="React">
+    Compound components use dot notation off a shared namespace:
+
+    ```tsx
+    <VolumeSlider.Root orientation="vertical">
+      <VolumeSlider.Track>
+        <VolumeSlider.Fill />
+      </VolumeSlider.Track>
+      <VolumeSlider.Thumb />
+    </VolumeSlider.Root>
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```html
+    <media-volume-slider orientation="vertical">
+      <media-slider-track>
+        <media-slider-fill></media-slider-fill>
+      </media-slider-track>
+      <media-slider-thumb></media-slider-thumb>
+    </media-volume-slider>
+    ```
+  </Tab>
+</Tabs>
+
+## Available components
+
+<CardGroup cols={2}>
+  <Card title="PlayButton" icon="play">
+    Plays and pauses the media. Reflects `data-paused` state.
+
+    React: `<PlayButton>` / HTML: `<media-play-button>`
+  </Card>
+  <Card title="MuteButton" icon="volume-xmark">
+    Toggles mute. Reflects `data-muted` and `data-volume-level` state.
+
+    React: `<MuteButton>` / HTML: `<media-mute-button>`
+  </Card>
+  <Card title="FullscreenButton" icon="expand">
+    Enters and exits fullscreen. Reflects `data-fullscreen` and `data-availability` state.
+
+    React: `<FullscreenButton>` / HTML: `<media-fullscreen-button>`
+  </Card>
+  <Card title="PiPButton" icon="picture-in-picture">
+    Enters and exits picture-in-picture. Reflects `data-pip` and `data-availability` state.
+
+    React: `<PiPButton>` / HTML: `<media-pip-button>`
+  </Card>
+  <Card title="SeekButton" icon="forward">
+    Seeks forward or backward by a fixed number of seconds via the `seconds` prop/attribute.
+
+    React: `<SeekButton seconds={10}>` / HTML: `<media-seek-button seconds="10">`
+  </Card>
+  <Card title="CaptionsButton" icon="closed-captioning">
+    Toggles captions and subtitles on or off.
+
+    React: `<CaptionsButton>` / HTML: `<media-captions-button>`
+  </Card>
+  <Card title="PlaybackRateButton" icon="gauge-high">
+    Cycles through playback rates. Reflects the current `data-rate`.
+
+    React: `<PlaybackRateButton>` / HTML: `<media-playback-rate-button>`
+  </Card>
+  <Card title="TimeSlider" icon="sliders">
+    Seek slider. Compound component with `Root`, `Track`, `Fill`, `Buffer`, and `Thumb` parts.
+
+    React: `<TimeSlider.Root>` / HTML: `<media-time-slider>`
+  </Card>
+  <Card title="VolumeSlider" icon="volume-low">
+    Volume slider. Compound component with `Root`, `Track`, `Fill`, and `Thumb` parts.
+
+    React: `<VolumeSlider.Root>` / HTML: `<media-volume-slider>`
+  </Card>
+  <Card title="BufferingIndicator" icon="circle-notch">
+    Renders only when the player is buffering.
+
+    React: `<BufferingIndicator>` / HTML: `<media-buffering-indicator>`
+  </Card>
+  <Card title="Poster" icon="image">
+    Displays the poster image before playback starts.
+
+    React: `<Poster>` / HTML: `<media-poster>`
+  </Card>
+  <Card title="Thumbnail" icon="film">
+    Shows a thumbnail preview image at a given time position.
+
+    React: `<Thumbnail>` / HTML: `<media-thumbnail>`
+  </Card>
+  <Card title="Controls" icon="rectangle-list">
+    Container for control elements. Manages visibility based on user activity.
+
+    React: `<Controls.Root>` / HTML: `<media-controls>`
+  </Card>
+  <Card title="Time" icon="clock">
+    Displays current time, duration, or remaining time.
+
+    React: `<Time.Value type="current">` / HTML: `<media-time type="current">`
+  </Card>
+  <Card title="Tooltip" icon="message">
+    Accessible tooltip wrapper for labeling controls.
+
+    React: `<Tooltip>` / HTML: `<media-tooltip>`
+  </Card>
+  <Card title="Popover" icon="square-arrow-up-right">
+    Floating panel for secondary controls like volume. Compound component with `Root`, `Trigger`, and `Popup` parts.
+
+    React: `<Popover.Root>` / HTML: `<media-popover>`
+  </Card>
+</CardGroup>

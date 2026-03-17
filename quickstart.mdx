@@ -1,80 +1,283 @@
 ---
 title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+description: "Get a working Video.js v10 player running in under 5 minutes. Choose your platform: React components or HTML custom elements."
 ---
 
-## Get started in three steps
+<Warning>
+Video.js v10 is currently in **beta**. The API may change before the stable release.
+</Warning>
 
-Get your documentation site running locally and make your first customization.
+<Tabs>
+  <Tab title="React">
 
-### Step 1: Set up your local environment
+## React quickstart
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+Use `@videojs/react` to build players with composable React components and hooks.
 
-### Step 2: Deploy your changes
+<Steps>
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+<Step title="Install the package">
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+<CodeGroup>
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+```bash npm
+npm install @videojs/react
+```
 
-### Step 3: Go live
+```bash pnpm
+pnpm add @videojs/react
+```
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+```bash yarn
+yarn add @videojs/react
+```
+
+```bash bun
+bun add @videojs/react
+```
+
+</CodeGroup>
+
+</Step>
+
+<Step title="Create your player component">
+
+Create a new file for your player. Call `createPlayer` with a feature bundle to get a typed `Player` object that contains the `Provider`, `Container`, and a `usePlayer` hook scoped to that player instance.
+
+```tsx title="components/player.tsx"
+'use client';
+
+import '@videojs/react/video/skin.css';
+import { createPlayer } from '@videojs/react';
+import { Video, VideoSkin, videoFeatures } from '@videojs/react/video';
+
+const Player = createPlayer({ features: videoFeatures });
+
+interface MyPlayerProps {
+  src: string;
+}
+
+export const MyPlayer = ({ src }: MyPlayerProps) => {
+  return (
+    <Player.Provider>
+      <VideoSkin>
+        <Video src={src} playsInline />
+      </VideoSkin>
+    </Player.Provider>
+  );
+};
+```
+
+<Note>
+The `'use client'` directive is required for Next.js App Router. Omit it for Vite, Remix, or other setups that don't use React Server Components.
+</Note>
+
+</Step>
+
+<Step title="Use the player in your app">
+
+Import and render your player component anywhere in your app:
+
+```tsx title="app/page.tsx"
+import { MyPlayer } from '../components/player';
+
+export default function Page() {
+  return (
+    <MyPlayer src="https://stream.mux.com/BV3YZtogl89mg9VcNBhhnHm02Y34zI1nlMuMQfAbl3dM/highest.mp4" />
+  );
+}
+```
+
+</Step>
+
+<Step title="Play an HLS stream (optional)">
+
+To stream with HLS, swap `Video` for `HlsVideo` from the media subpath. The feature bundle and skin stay the same:
+
+```tsx title="components/player.tsx"
+'use client';
+
+import '@videojs/react/video/skin.css';
+import { createPlayer } from '@videojs/react';
+import { VideoSkin, videoFeatures } from '@videojs/react/video';
+import { HlsVideo } from '@videojs/react/media/hls-video';
+
+const Player = createPlayer({ features: videoFeatures });
+
+export const MyPlayer = ({ src }: { src: string }) => {
+  return (
+    <Player.Provider>
+      <VideoSkin>
+        <HlsVideo src={src} playsInline />
+      </VideoSkin>
+    </Player.Provider>
+  );
+};
+```
+
+</Step>
+
+</Steps>
+
+  </Tab>
+  <Tab title="HTML">
+
+## HTML quickstart
+
+Use `@videojs/html` to build players with framework-free custom elements that work in any web environment.
+
+<Tabs>
+  <Tab title="npm / module bundler">
+
+<Steps>
+
+<Step title="Install the package">
+
+<CodeGroup>
+
+```bash npm
+npm install @videojs/html
+```
+
+```bash pnpm
+pnpm add @videojs/html
+```
+
+```bash yarn
+yarn add @videojs/html
+```
+
+```bash bun
+bun add @videojs/html
+```
+
+</CodeGroup>
+
+</Step>
+
+<Step title="Register the custom elements">
+
+Import the side-effect modules that register the custom elements, and import the skin CSS:
+
+```javascript title="index.js"
+import '@videojs/html/video/player';
+import '@videojs/html/video/skin';
+import '@videojs/html/video/skin.css';
+```
+
+Each import registers one custom element. The `/video/player` module registers `<video-player>`, `/video/skin` registers `<video-skin>`.
+
+</Step>
+
+<Step title="Add the player markup">
+
+```html title="index.html"
+<video-player>
+  <video-skin>
+    <video slot="media" src="https://stream.mux.com/BV3YZtogl89mg9VcNBhhnHm02Y34zI1nlMuMQfAbl3dM/highest.mp4" playsinline></video>
+  </video-skin>
+</video-player>
+```
+
+The `slot="media"` attribute tells the player which element is the media source. Always include it on your `<video>`, `<audio>`, or custom media element.
+
+</Step>
+
+<Step title="Play an HLS stream (optional)">
+
+To use adaptive HLS streaming, add the `hls-video` import and swap the media element:
+
+```javascript title="index.js"
+import '@videojs/html/video/player';
+import '@videojs/html/video/skin';
+import '@videojs/html/video/skin.css';
+import '@videojs/html/media/hls-video';
+```
+
+```html title="index.html"
+<video-player>
+  <video-skin>
+    <hls-video slot="media" src="https://stream.mux.com/BV3YZtogl89mg9VcNBhhnHm02Y34zI1nlMuMQfAbl3dM.m3u8" playsinline></hls-video>
+  </video-skin>
+</video-player>
+```
+
+</Step>
+
+</Steps>
+
+  </Tab>
+  <Tab title="CDN">
+
+<Steps>
+
+<Step title="Add the script and stylesheet">
+
+Load the player and skin from the CDN. No build step required:
+
+```html title="index.html"
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@videojs/html/cdn/video/skin.css" />
+</head>
+<body>
+
+  <video-player>
+    <video-skin>
+      <video slot="media" src="https://stream.mux.com/BV3YZtogl89mg9VcNBhhnHm02Y34zI1nlMuMQfAbl3dM/highest.mp4" playsinline></video>
+    </video-skin>
+  </video-player>
+
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@videojs/html/cdn/video/player.js"></script>
+
+</body>
+</html>
+```
+
+</Step>
+
+<Step title="Play an HLS stream (optional)">
+
+Add the HLS script to enable adaptive streaming:
+
+```html title="index.html"
+<script type="module" src="https://cdn.jsdelivr.net/npm/@videojs/html/cdn/video/player.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/@videojs/html/cdn/media/hls-video.js"></script>
+```
+
+```html
+<video-player>
+  <video-skin>
+    <hls-video slot="media" src="https://stream.mux.com/BV3YZtogl89mg9VcNBhhnHm02Y34zI1nlMuMQfAbl3dM.m3u8" playsinline></hls-video>
+  </video-skin>
+</video-player>
+```
+
+</Step>
+
+</Steps>
+
+  </Tab>
+</Tabs>
+
+  </Tab>
+</Tabs>
 
 ## Next steps
 
-Now that you have your docs running, explore these key features:
-
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Architecture overview" icon="layers" href="/concepts/overview">
+    Understand how state, UI, and media layers fit together.
+  </Card>
+  <Card title="React guide" icon="atom" href="/guides/react">
+    Explore presets, skins, hooks, and advanced React patterns.
+  </Card>
+  <Card title="HTML guide" icon="code" href="/guides/html">
+    Explore presets, skins, custom elements, and HTML patterns.
+  </Card>
+  <Card title="Presets" icon="package" href="/concepts/presets">
+    Learn about the built-in `/video`, `/audio`, and `/background` presets.
+  </Card>
 </CardGroup>
-
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>

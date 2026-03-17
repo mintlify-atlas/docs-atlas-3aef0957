@@ -1,0 +1,262 @@
+---
+title: "React integration"
+description: "Build a fully featured video player in React using @videojs/react components, hooks, and typed stores."
+---
+
+This guide walks through building a complete player in React — from installation to custom controls.
+
+## Prerequisites
+
+- React 16.8 or later
+- `@videojs/react` installed (see [Installation](/guides/installation))
+
+## Create a player
+
+`createPlayer()` is the entry point for every player you build. Pass it a feature bundle and it returns a `Provider`, `Container`, and a scoped `usePlayer` hook — all typed to the features you chose.
+
+```tsx player.ts
+import { createPlayer } from '@videojs/react';
+import { videoFeatures } from '@videojs/react/video';
+
+export const Player = createPlayer({ features: videoFeatures });
+```
+
+The return value has three parts:
+
+| Export | Purpose |
+|---|---|
+| `Player.Provider` | Creates the state store; wrap your player UI inside it |
+| `Player.Container` | Layout wrapper that positions media and controls |
+| `Player.usePlayer` | Hook scoped to this player instance |
+
+<Tip>
+  You can call `createPlayer()` multiple times to have independent players on the same page. Each gets its own isolated store.
+</Tip>
+
+## Render a player with a preset skin
+
+The `/video` preset exports `VideoSkin` and `Video` — the fastest way to get a fully styled player on screen.
+
+```tsx App.tsx
+import { VideoSkin, Video } from '@videojs/react/video';
+import '@videojs/react/video/skin.css';
+import { Player } from './player';
+
+export function App() {
+  return (
+    <Player.Provider>
+      <VideoSkin>
+        <Video src="https://example.com/movie.mp4" />
+      </VideoSkin>
+    </Player.Provider>
+  );
+}
+```
+
+Available presets:
+
+| Preset import | Feature bundle | Skins | Media component |
+|---|---|---|---|
+| `@videojs/react/video` | `videoFeatures` | `VideoSkin`, `MinimalVideoSkin` | `Video` |
+| `@videojs/react/audio` | `audioFeatures` | `AudioSkin`, `MinimalAudioSkin` | `Audio` |
+| `@videojs/react/background` | `backgroundFeatures` | `BackgroundVideoSkin` | `BackgroundVideo` |
+
+## Access state with usePlayer
+
+Use the `usePlayer` hook returned from `createPlayer()` to subscribe to player state. The component only re-renders when the selected values change.
+
+```tsx PlayPauseLabel.tsx
+import { Player } from './player';
+
+export function PlayPauseLabel() {
+  const paused = Player.usePlayer((s) => s.paused);
+  return <span>{paused ? 'Paused' : 'Playing'}</span>;
+}
+```
+
+Select multiple values at once:
+
+```tsx VolumeDisplay.tsx
+import { Player } from './player';
+
+export function VolumeDisplay() {
+  const { volume, muted } = Player.usePlayer((s) => ({
+    volume: s.volume,
+    muted: s.muted,
+  }));
+  return <span>{muted ? 'Muted' : `${Math.round(volume * 100)}%`}</span>;
+}
+```
+
+Call actions directly on the store:
+
+```tsx Controls.tsx
+import { Player } from './player';
+
+export function Controls() {
+  const store = Player.usePlayer();
+  return (
+    <div>
+      <button onClick={() => store.play()}>Play</button>
+      <button onClick={() => store.pause()}>Pause</button>
+      <button onClick={() => store.setVolume(0.5)}>50% volume</button>
+    </div>
+  );
+}
+```
+
+## Use feature-scoped selectors
+
+Each feature exports a pre-built selector that returns just that feature's state and actions:
+
+```tsx
+import { selectPlayback, selectVolume, usePlayer } from '@videojs/react';
+import { Player } from './player';
+
+function PlayControl() {
+  const playback = Player.usePlayer(selectPlayback);
+  if (!playback) return null;
+  return (
+    <button onClick={() => (playback.paused ? playback.play() : playback.pause())}>
+      {playback.paused ? 'Play' : 'Pause'}
+    </button>
+  );
+}
+```
+
+## Build custom controls
+
+`@videojs/react` exports headless UI primitives. Each accepts a `render` prop so you supply the markup — the component handles all the accessibility and state wiring.
+
+### PlayButton
+
+```tsx
+import { PlayButton } from '@videojs/react';
+
+<PlayButton
+  render={(props, state) => (
+    <button {...props}>
+      {state.paused ? 'Play' : 'Pause'}
+    </button>
+  )}
+/>
+```
+
+### MuteButton
+
+```tsx
+import { MuteButton } from '@videojs/react';
+
+<MuteButton
+  render={(props, state) => (
+    <button {...props}>
+      {state.muted ? 'Unmute' : 'Mute'}
+    </button>
+  )}
+/>
+```
+
+### VolumeSlider
+
+```tsx
+import { VolumeSlider } from '@videojs/react';
+
+<VolumeSlider.Root orientation="vertical">
+  <VolumeSlider.Track>
+    <VolumeSlider.Fill />
+  </VolumeSlider.Track>
+  <VolumeSlider.Thumb />
+</VolumeSlider.Root>
+```
+
+### TimeSlider
+
+```tsx
+import { TimeSlider } from '@videojs/react';
+
+<TimeSlider.Root>
+  <TimeSlider.Track>
+    <TimeSlider.Fill />
+    <TimeSlider.Buffer />
+  </TimeSlider.Track>
+  <TimeSlider.Thumb />
+</TimeSlider.Root>
+```
+
+### FullscreenButton
+
+```tsx
+import { FullscreenButton } from '@videojs/react';
+
+<FullscreenButton
+  render={(props, state) => (
+    <button {...props}>
+      {state.fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+    </button>
+  )}
+/>
+```
+
+## Complete custom player example
+
+```tsx VideoPlayer.tsx
+import {
+  PlayButton,
+  MuteButton,
+  FullscreenButton,
+  TimeSlider,
+  Controls,
+} from '@videojs/react';
+import { Video } from '@videojs/react/video';
+import { Player } from './player';
+
+export function VideoPlayer({ src }: { src: string }) {
+  return (
+    <Player.Provider>
+      <Player.Container>
+        <Video src={src} />
+        <Controls.Root>
+          <PlayButton
+            render={(props, state) => (
+              <button {...props}>{state.paused ? 'Play' : 'Pause'}</button>
+            )}
+          />
+          <TimeSlider.Root>
+            <TimeSlider.Track>
+              <TimeSlider.Fill />
+              <TimeSlider.Buffer />
+            </TimeSlider.Track>
+            <TimeSlider.Thumb />
+          </TimeSlider.Root>
+          <MuteButton
+            render={(props, state) => (
+              <button {...props}>{state.muted ? 'Unmute' : 'Mute'}</button>
+            )}
+          />
+          <FullscreenButton
+            render={(props, state) => (
+              <button {...props}>
+                {state.fullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+              </button>
+            )}
+          />
+        </Controls.Root>
+      </Player.Container>
+    </Player.Provider>
+  );
+}
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Custom features" icon="puzzle" href="/guides/custom-features">
+    Add or compose features beyond the preset defaults.
+  </Card>
+  <Card title="Custom skins" icon="palette" href="/guides/custom-skins">
+    Eject and customize the built-in skins.
+  </Card>
+  <Card title="Media sources" icon="play" href="/guides/media-sources">
+    Use HLS, DASH, and other streaming formats.
+  </Card>
+</CardGroup>

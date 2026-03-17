@@ -1,0 +1,125 @@
+---
+title: "Controls"
+description: "Layout wrapper for composing and auto-hiding video player controls on user interaction."
+---
+
+`Controls` is a compound component that manages the visibility of player controls. It shows controls when the user is active or when the video is paused, and hides them after a short delay when the user becomes inactive.
+
+## Sub-components
+
+| Component | Description |
+|-----------|-------------|
+| `Controls.Root` | Root container that tracks user activity and manages control visibility. |
+| `Controls.Group` | Layout group for related controls. Receives `role="group"` when labeled. |
+
+<Note>
+  `Controls.Root` requires the `controls` feature to be registered with the player.
+</Note>
+
+## Import
+
+```tsx
+import { Controls } from '@videojs/react';
+```
+
+## Basic Usage
+
+```tsx
+import { Controls, PlayButton, MuteButton, TimeSlider } from '@videojs/react';
+
+function PlayerUI() {
+  return (
+    <Controls.Root className="controls">
+      <Controls.Group className="controls-bottom">
+        <TimeSlider.Root className="time-slider" />
+        <Controls.Group className="controls-row">
+          <PlayButton />
+          <MuteButton />
+        </Controls.Group>
+      </Controls.Group>
+    </Controls.Root>
+  );
+}
+```
+
+## Controls.Root Props
+
+<ParamField path="children" type="ReactNode">
+  Child controls or `Controls.Group` elements to render inside the root container.
+</ParamField>
+
+<ParamField path="render" type="ReactElement | ((props: HTMLProps, state: ControlsRoot.State) => ReactElement | null)">
+  Custom render prop for the root `<div>` element.
+</ParamField>
+
+<ParamField path="className" type="string | ((state: ControlsRoot.State) => string)">
+  CSS class name or a function that receives state and returns a class name.
+</ParamField>
+
+<ParamField path="style" type="CSSProperties | ((state: ControlsRoot.State) => CSSProperties)">
+  Inline style or a function that receives state and returns a style object.
+</ParamField>
+
+## Controls.Group Props
+
+<ParamField path="children" type="ReactNode">
+  Child controls to group together.
+</ParamField>
+
+<ParamField path="aria-label" type="string">
+  When provided, the group receives `role="group"` and this label is announced by screen readers.
+</ParamField>
+
+<ParamField path="aria-labelledby" type="string">
+  Alternative to `aria-label`. When provided, the group receives `role="group"`.
+</ParamField>
+
+<ParamField path="render" type="ReactElement | ((props: HTMLProps, state: ControlsRoot.State) => ReactElement | null)">
+  Custom render prop for the group `<div>` element.
+</ParamField>
+
+<ParamField path="className" type="string | ((state: ControlsRoot.State) => string)">
+  CSS class name or a function that receives state and returns a class name.
+</ParamField>
+
+<ParamField path="style" type="CSSProperties | ((state: ControlsRoot.State) => CSSProperties)">
+  Inline style or a function that receives state and returns a style object.
+</ParamField>
+
+## State Data Attributes
+
+These attributes are reflected on the `Controls.Root` element.
+
+| Attribute | Description |
+|-----------|-------------|
+| `data-visible` | Present when controls should be visible (user active or video paused). |
+
+### CSS Styling Example
+
+```css
+/* Click-through: clicks pass through controls to video beneath */
+.controls {
+  pointer-events: none;
+}
+
+.controls-group {
+  pointer-events: auto;
+}
+
+/* Fade transition */
+.controls {
+  transition: opacity 0.25s;
+}
+
+.controls:not([data-visible]) {
+  opacity: 0;
+}
+```
+
+## Behavior
+
+User activity is tracked via pointer movement, keyboard input, and focus events on the player container. On touch devices, a quick tap toggles visibility. `mouseleave` immediately sets the user as inactive.
+
+## Accessibility
+
+No ARIA role is applied to `Controls.Root` — it is a layout wrapper, not a landmark. `Controls.Group` automatically receives `role="group"` only when an `aria-label` or `aria-labelledby` attribute is provided.

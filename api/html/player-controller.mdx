@@ -1,0 +1,136 @@
+---
+title: "PlayerController"
+description: "Reactive controller for accessing typed player store state in HTML custom elements."
+---
+
+`PlayerController` is a reactive controller that consumes the player store from the nearest provider element in the DOM tree. It is returned (pre-typed) from [`createPlayer`](/api/html/create-player).
+
+- **Without a selector** — returns the store instance directly. Does **not** subscribe to state changes. Use this for dispatching actions.
+- **With a selector** — returns the selected value and subscribes to changes, triggering a host update on shallow-equal change.
+
+Access the current value via `.value`. Returns `undefined` until the host is connected to a provider.
+
+## Signature
+
+```ts
+import { PlayerController } from '@videojs/html';
+
+class PlayerController<Store extends PlayerStore, Result = Store>
+  implements ReactiveController
+```
+
+## Constructor
+
+<Tabs>
+  <Tab title="Without selector">
+    ```ts
+    new PlayerController(host, context)
+    ```
+
+    <ParamField body="host" type="PlayerControllerHost" required>
+      The host element (`ReactiveControllerHost & HTMLElement`) that owns this controller. Typically `this` inside a custom element class.
+    </ParamField>
+
+    <ParamField body="context" type="PlayerContext<Store>" required>
+      The player context returned by `createPlayer`. Scopes this controller to the correct provider element.
+    </ParamField>
+  </Tab>
+  <Tab title="With selector">
+    ```ts
+    new PlayerController(host, context, selector)
+    ```
+
+    <ParamField body="host" type="PlayerControllerHost" required>
+      The host element (`ReactiveControllerHost & HTMLElement`) that owns this controller. Typically `this` inside a custom element class.
+    </ParamField>
+
+    <ParamField body="context" type="PlayerContext<Store>" required>
+      The player context returned by `createPlayer`. Scopes this controller to the correct provider element.
+    </ParamField>
+
+    <ParamField body="selector" type="Selector<InferStoreState<Store>, Result>" required>
+      A function that derives a value from the player store state. The host is re-rendered only when the selected value changes (shallow equality).
+    </ParamField>
+  </Tab>
+</Tabs>
+
+## Properties
+
+<ResponseField name="value" type="Result | undefined">
+  The current selected state, or `undefined` if the host is not yet connected to a provider.
+
+  - Without a selector: the store instance itself.
+  - With a selector: the return value of the selector applied to the current state.
+</ResponseField>
+
+<ResponseField name="displayName" type="string | undefined">
+  The `displayName` of the selector function, if set. Useful for debugging.
+</ResponseField>
+
+## Usage
+
+### Accessing actions (without selector)
+
+Without a selector, `PlayerController` returns the store directly and does not subscribe to updates. Use this pattern to invoke actions imperatively.
+
+```ts
+import { createPlayer, MediaElement } from '@videojs/html';
+import { videoFeatures } from '@videojs/html/video';
+
+const { PlayerController, context } = createPlayer({ features: videoFeatures });
+
+class VolumeControl extends MediaElement {
+  readonly #player = new PlayerController(this, context);
+
+  connectedCallback() {
+    super.connectedCallback();
+    this.addEventListener('click', this.#handleClick);
+  }
+
+  #handleClick = () => {
+    this.#player.value?.setVolume(0.5);
+  };
+}
+
+customElements.define('volume-control', VolumeControl);
+```
+
+### Subscribing to state (with selector)
+
+With a selector, `PlayerController` subscribes to the player store and triggers a host update whenever the selected value changes.
+
+```ts
+import { createPlayer, MediaElement, selectPlayback } from '@videojs/html';
+import { videoFeatures } from '@videojs/html/video';
+
+const { PlayerController, context } = createPlayer({ features: videoFeatures });
+
+class PlayButton extends MediaElement {
+  readonly #playback = new PlayerController(this, context, selectPlayback);
+
+  render() {
+    const playback = this.#playback.value;
+    if (!playback) return;
+
+    this.textContent = playback.paused ? 'Play' : 'Pause';
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    this.addEventListener('click', () => this.#playback.value?.toggle());
+  }
+}
+
+customElements.define('play-button', PlayButton);
+```
+
+## Lifecycle
+
+`PlayerController` hooks into the host's reactive controller lifecycle:
+
+- `hostConnected()` — resolves the store from context and, if a selector was provided, creates an internal `StoreController` to subscribe to state changes.
+- `hostDisconnected()` — tears down the internal store controller; `.value` returns `undefined`.
+
+<Note>
+  `PlayerController` uses a `ContextConsumer` internally, so it automatically reconnects if the host is moved in the DOM and reattaches to a new provider.
+</Note>

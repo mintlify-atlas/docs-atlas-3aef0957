@@ -1,0 +1,109 @@
+---
+title: "usePlayer()"
+description: "Hook for accessing the typed player store from within a Player.Provider context."
+---
+
+`usePlayer` gives you access to the player store from any component inside a `Player.Provider`. It has two overloads — call it without arguments to get the store for imperative actions, or pass a selector function to subscribe to reactive state.
+
+The version returned by `createPlayer` is typed to the features you provided. The standalone import from `@videojs/react` returns an untyped store.
+
+```tsx
+import { createPlayer } from '@videojs/react';
+import { videoFeatures } from '@videojs/react/video';
+
+const Player = createPlayer({ features: videoFeatures });
+
+// Typed to videoFeatures:
+const store = Player.usePlayer();
+const paused = Player.usePlayer((s) => s.paused);
+```
+
+## Overloads
+
+### Without selector — store access
+
+Returns the store instance directly. The component does **not** subscribe to state changes and will not re-render when state updates. Use this overload for imperative actions like `play`, `pause`, and `setVolume`.
+
+```tsx
+function PlayPauseButton() {
+  const store = Player.usePlayer();
+
+  return (
+    <button onClick={() => store.dispatch('toggle-playback')}>
+      Toggle
+    </button>
+  );
+}
+```
+
+<ParamField path="(no arguments)" type="—">
+  Call with no arguments to get the store instance without subscribing to state.
+</ParamField>
+
+**Returns:** `Store` — the full, typed store object.
+
+### With selector — reactive subscription
+
+Pass a selector function to derive and subscribe to a value from store state. The component re-renders when the derived value changes, using shallow equality by default.
+
+```tsx
+function VolumeDisplay() {
+  const { volume, muted } = Player.usePlayer((s) => ({
+    volume: s.volume,
+    muted: s.muted,
+  }));
+
+  return <span>{muted ? 'Muted' : `${Math.round(volume * 100)}%`}</span>;
+}
+```
+
+<ParamField path="selector" type="(state: StoreState) => R" required>
+  A function that receives the current store state and returns the value to subscribe to. The component re-renders when the returned value changes (shallow equality).
+</ParamField>
+
+**Returns:** `R` — the value returned by the selector.
+
+## Using feature selectors
+
+Use pre-built selectors from `@videojs/react` to select common feature slices:
+
+```tsx
+import { selectPlayback } from '@videojs/react';
+
+function StatusDisplay() {
+  const playback = Player.usePlayer(selectPlayback);
+  return <span>{playback?.paused ? 'Paused' : 'Playing'}</span>;
+}
+```
+
+## Standalone import
+
+The standalone `usePlayer` exported from `@videojs/react` behaves identically but returns an untyped store. Use `Player.usePlayer` (from `createPlayer`) to get typed state.
+
+```tsx
+import { usePlayer } from '@videojs/react';
+
+// Untyped — use when you don't have createPlayer result in scope
+const store = usePlayer();
+```
+
+## Rules
+
+- Must be called inside a `Player.Provider`.
+- Throws if called outside a provider context.
+- The no-argument overload does not cause re-renders on state changes.
+- The selector overload uses shallow equality by default. Return a stable primitive or flat object to avoid unnecessary re-renders.
+
+## TypeScript signature
+
+```ts
+// From createPlayer — fully typed to your features:
+type UsePlayerHook<Store extends PlayerStore> = {
+  (): Store;
+  <R>(selector: (state: InferStoreState<Store>) => R): R;
+};
+
+// Standalone import — untyped:
+function usePlayer(): UnknownStore;
+function usePlayer<R>(selector: (state: UnknownState) => R): R;
+```

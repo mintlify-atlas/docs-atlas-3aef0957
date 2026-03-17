@@ -1,0 +1,268 @@
+---
+title: "Media sources"
+description: "Use plain video, HLS, DASH, and other media sources with Video.js v10 in both React and HTML."
+---
+
+Video.js v10 supports a range of media sources through swappable **media elements**. Switching from a plain `<video>` to HLS or DASH is a one-line change — your skin and features stay the same.
+
+## Plain video and audio
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { createPlayer } from '@videojs/react';
+    import { videoFeatures, VideoSkin, Video } from '@videojs/react/video';
+    import '@videojs/react/video/skin.css';
+
+    const Player = createPlayer({ features: videoFeatures });
+
+    function App() {
+      return (
+        <Player.Provider>
+          <VideoSkin>
+            <Video src="https://example.com/movie.mp4" />
+          </VideoSkin>
+        </Player.Provider>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```html
+    <video-player>
+      <video-skin>
+        <video slot="media" src="https://example.com/movie.mp4"></video>
+      </video-skin>
+    </video-player>
+    ```
+  </Tab>
+</Tabs>
+
+## HLS
+
+The HLS media element wraps [hls.js](https://github.com/video-dev/hls.js) and is included in `@videojs/core` as a dependency. Pass an `.m3u8` URL directly as `src`:
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { HlsVideo } from '@videojs/react/media/hls-video';
+    import { VideoSkin } from '@videojs/react/video';
+    import { Player } from './player';
+
+    function App() {
+      return (
+        <Player.Provider>
+          <VideoSkin>
+            <HlsVideo src="https://example.com/stream.m3u8" />
+          </VideoSkin>
+        </Player.Provider>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import '@videojs/html/video/player';
+    import '@videojs/html/video/skin';
+    import '@videojs/html/video/skin.css';
+    // Register the hls-video element
+    import '@videojs/html/media/hls-video';
+    ```
+
+    ```html
+    <video-player>
+      <video-skin>
+        <hls-video slot="media" src="https://example.com/stream.m3u8"></hls-video>
+      </video-skin>
+    </video-player>
+    ```
+  </Tab>
+</Tabs>
+
+## DASH
+
+The DASH media element wraps [dash.js](https://github.com/Dash-Industry-Forum/dash.js) and is also bundled in `@videojs/core`. Pass an `.mpd` URL as `src`:
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { DashVideo } from '@videojs/react/media/dash-video';
+    import { VideoSkin } from '@videojs/react/video';
+    import { Player } from './player';
+
+    function App() {
+      return (
+        <Player.Provider>
+          <VideoSkin>
+            <DashVideo src="https://example.com/manifest.mpd" />
+          </VideoSkin>
+        </Player.Provider>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import '@videojs/html/video/player';
+    import '@videojs/html/video/skin';
+    import '@videojs/html/video/skin.css';
+    // Register the dash-video element
+    import '@videojs/html/media/dash-video';
+    ```
+
+    ```html
+    <video-player>
+      <video-skin>
+        <dash-video slot="media" src="https://example.com/manifest.mpd"></dash-video>
+      </video-skin>
+    </video-player>
+    ```
+  </Tab>
+</Tabs>
+
+## Background video
+
+The `/background` preset bakes in `autoplay`, `muted`, and `loop` on the media element — ideal for hero sections and decorative video:
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { createPlayer } from '@videojs/react';
+    import {
+      backgroundFeatures,
+      BackgroundVideo,
+      BackgroundVideoSkin,
+    } from '@videojs/react/background';
+    import '@videojs/react/background/skin.css';
+
+    const Player = createPlayer({ features: backgroundFeatures });
+
+    function Hero() {
+      return (
+        <Player.Provider>
+          <BackgroundVideoSkin>
+            <BackgroundVideo src="hero.mp4" />
+          </BackgroundVideoSkin>
+        </Player.Provider>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import '@videojs/html/background/player';
+    import '@videojs/html/background/video';
+    import '@videojs/html/background/skin';
+    import '@videojs/html/background/skin.css';
+    ```
+
+    ```html
+    <background-video-player>
+      <background-video-skin>
+        <background-video slot="media" src="hero.mp4"></background-video>
+      </background-video-skin>
+    </background-video-player>
+    ```
+  </Tab>
+</Tabs>
+
+## Swapping sources dynamically
+
+Media components accept a `src` prop that you can update at any time. The player reacts to `src` changes automatically:
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { useState } from 'react';
+    import { Video, VideoSkin } from '@videojs/react/video';
+    import { Player } from './player';
+
+    const SOURCES = [
+      'https://example.com/clip1.mp4',
+      'https://example.com/clip2.mp4',
+    ];
+
+    function Playlist() {
+      const [index, setIndex] = useState(0);
+
+      return (
+        <Player.Provider>
+          <VideoSkin>
+            <Video src={SOURCES[index]} />
+          </VideoSkin>
+          <button onClick={() => setIndex((i) => (i + 1) % SOURCES.length)}>
+            Next
+          </button>
+        </Player.Provider>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    const video = document.querySelector('video[slot="media"]') as HTMLVideoElement;
+
+    function loadSource(src: string) {
+      video.src = src;
+      video.load();
+      video.play();
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Error handling
+
+When media fails to load, the player exposes error state. The built-in skins render a dismissable error dialog automatically. To handle errors in custom skins:
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { AlertDialog } from '@videojs/react';
+    import { Player } from './player';
+
+    function ErrorDialog() {
+      return (
+        <AlertDialog
+          aria-labelledby="error-title"
+          render={(props, { onDismiss }) => (
+            <div {...props} className="error-overlay">
+              <p id="error-title">Something went wrong.</p>
+              <button onClick={onDismiss}>Dismiss</button>
+            </div>
+          )}
+        />
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```css
+    /* The error state is reflected as a data attribute on the player */
+    video-player[data-error] .error-message {
+      display: block;
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Media element reference
+
+| Component (React) | Element (HTML) | Source format |
+|---|---|---|
+| `Video` | `<video>` | MP4, WebM, and other browser-native formats |
+| `Audio` | `<audio>` | MP3, AAC, Ogg, and other browser-native formats |
+| `HlsVideo` | `<hls-video>` | HLS (`.m3u8`) via hls.js |
+| `DashVideo` | `<dash-video>` | MPEG-DASH (`.mpd`) via dash.js |
+| `BackgroundVideo` | `<background-video>` | MP4 (autoplay, muted, loop) |
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Custom features" icon="puzzle" href="/guides/custom-features">
+    Control which features and state the player tracks.
+  </Card>
+  <Card title="Custom skins" icon="palette" href="/guides/custom-skins">
+    Build a skin that matches your design.
+  </Card>
+</CardGroup>

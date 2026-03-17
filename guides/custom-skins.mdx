@@ -1,0 +1,231 @@
+---
+title: "Custom skins"
+description: "Customize or build your own Video.js v10 skin using CSS custom properties, component composition, and ejected skins."
+---
+
+A **skin** packages UI components and their styles into a single component. Video.js ships with pre-built skins you can use as-is or eject to customize fully.
+
+## Packaged vs. ejected
+
+| | Packaged | Ejected |
+|---|---|---|
+| Usage | Single component | Many individual components |
+| Customization | Limited (CSS variables) | Complete |
+| Design updates | Auto-applied on version bump | Applied manually |
+
+Start with a packaged skin. Eject when you need structural changes.
+
+## CSS custom properties
+
+Packaged skins expose CSS custom properties for colors, spacing, and typography. Override them in your own stylesheet:
+
+```css styles.css
+/* Override the default skin's color tokens */
+.my-player {
+  --media-primary-color: #ff6b35;
+  --media-background-color: #1a1a2e;
+  --media-control-bar-height: 48px;
+  --media-border-radius: 12px;
+}
+```
+
+<Tip>
+  Apply overrides to the player container's class so they're scoped per-player instance and don't bleed into other players on the page.
+</Tip>
+
+## Eject a skin
+
+Ejecting copies all the internal components from a skin into your own project. You then own the markup, CSS, and structure — future Video.js updates won't overwrite your customizations.
+
+The [customize skins](/guides/installation) reference page has copy-paste-ready ejected implementations for:
+
+- Default video skin
+- Default audio skin
+- Minimal video skin
+- Minimal audio skin
+
+## Build a custom skin from scratch
+
+### React
+
+Use `Player.Container` as the layout wrapper, then compose UI components inside it:
+
+```tsx MyVideoSkin.tsx
+import {
+  PlayButton,
+  MuteButton,
+  FullscreenButton,
+  TimeSlider,
+  Controls,
+} from '@videojs/react';
+import type { ReactNode } from 'react';
+import { Player } from './player';
+import './my-skin.css';
+
+export function MyVideoSkin({ children }: { children: ReactNode }) {
+  return (
+    <Player.Container className="my-skin">
+      {children}
+
+      <Controls.Root className="my-skin__controls">
+        <PlayButton
+          render={(props, state) => (
+            <button {...props} className="my-skin__play">
+              {state.paused ? '▶' : '⏸'}
+            </button>
+          )}
+        />
+
+        <TimeSlider.Root className="my-skin__seek">
+          <TimeSlider.Track>
+            <TimeSlider.Fill />
+            <TimeSlider.Buffer />
+          </TimeSlider.Track>
+          <TimeSlider.Thumb />
+        </TimeSlider.Root>
+
+        <MuteButton
+          render={(props, state) => (
+            <button {...props} className="my-skin__mute">
+              {state.muted ? '🔇' : '🔊'}
+            </button>
+          )}
+        />
+
+        <FullscreenButton
+          render={(props, state) => (
+            <button {...props} className="my-skin__fullscreen">
+              {state.fullscreen ? 'Exit' : 'Fullscreen'}
+            </button>
+          )}
+        />
+      </Controls.Root>
+    </Player.Container>
+  );
+}
+```
+
+Then use it:
+
+```tsx App.tsx
+import { Video } from '@videojs/react/video';
+import { Player } from './player';
+import { MyVideoSkin } from './MyVideoSkin';
+
+export function App() {
+  return (
+    <Player.Provider>
+      <MyVideoSkin>
+        <Video src="movie.mp4" />
+      </MyVideoSkin>
+    </Player.Provider>
+  );
+}
+```
+
+### HTML
+
+Use `<media-container>` as the layout wrapper and compose individual UI elements inside it:
+
+```ts
+import '@videojs/html/video/player';
+import '@videojs/html/media/container';
+import '@videojs/html/ui/play-button';
+import '@videojs/html/ui/mute-button';
+import '@videojs/html/ui/fullscreen-button';
+import '@videojs/html/ui/time-slider';
+```
+
+```html
+<video-player>
+  <media-container class="my-skin">
+    <video slot="media" src="movie.mp4"></video>
+
+    <div class="my-skin__controls">
+      <media-play-button class="my-skin__play">
+        <span class="show-when-paused">Play</span>
+        <span class="show-when-playing">Pause</span>
+      </media-play-button>
+
+      <media-time-slider class="my-skin__seek"></media-time-slider>
+
+      <media-mute-button class="my-skin__mute">
+        <span class="show-when-muted">Unmute</span>
+        <span class="show-when-unmuted">Mute</span>
+      </media-mute-button>
+
+      <media-fullscreen-button class="my-skin__fullscreen"></media-fullscreen-button>
+    </div>
+  </media-container>
+</video-player>
+```
+
+## Theming with data-* attributes
+
+Video.js elements reflect state as `data-*` attributes. Use CSS attribute selectors to drive all visual state changes — no JavaScript required:
+
+```css my-skin.css
+/* Play button: show correct icon based on playback state */
+.my-skin__play .show-when-paused  { display: none; }
+.my-skin__play .show-when-playing { display: none; }
+.my-skin__play[data-paused] .show-when-paused   { display: inline; }
+.my-skin__play:not([data-paused]) .show-when-playing { display: inline; }
+
+/* Mute button: show correct icon */
+.my-skin__mute .show-when-muted   { display: none; }
+.my-skin__mute .show-when-unmuted { display: none; }
+.my-skin__mute[data-muted] .show-when-muted     { display: inline; }
+.my-skin__mute:not([data-muted]) .show-when-unmuted { display: inline; }
+
+/* Controls: fade in on hover */
+.my-skin__controls {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.my-skin:hover .my-skin__controls,
+.my-skin[data-paused] .my-skin__controls {
+  opacity: 1;
+}
+```
+
+Common `data-*` attributes exposed by Video.js elements:
+
+| Attribute | Set when |
+|---|---|
+| `data-paused` | Media is paused |
+| `data-muted` | Volume is muted |
+| `data-fullscreen` | Player is in fullscreen |
+| `data-availability` | Feature availability (`available`, `unavailable`, `unsupported`) |
+| `data-paused` on `<media-play-button>` | Media is paused |
+| `data-direction` on `<media-seek-button>` | `forward` or `backward` |
+
+## Render prop pattern in React
+
+Every headless UI component accepts a `render` prop. The render function receives two arguments: HTML props to spread onto the element, and the current state relevant to that component:
+
+```tsx
+<PlayButton
+  render={(props, state) => (
+    // `props` — accessibility attributes, event handlers, ref, etc.
+    // `state` — { paused, ended, ... }
+    <button {...props} className={state.paused ? 'btn-play' : 'btn-pause'}>
+      {state.paused ? 'Play' : 'Pause'}
+    </button>
+  )}
+/>
+```
+
+<Note>
+  Always spread `props` onto your root element. It contains `aria-*` attributes, `tabIndex`, `role`, and event handlers that are required for accessibility.
+</Note>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Custom features" icon="puzzle" href="/guides/custom-features">
+    Control which features and state your player includes.
+  </Card>
+  <Card title="Media sources" icon="play" href="/guides/media-sources">
+    Swap in HLS, DASH, and other media providers.
+  </Card>
+</CardGroup>

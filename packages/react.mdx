@@ -1,0 +1,227 @@
+---
+title: "@videojs/react"
+description: "React library for building accessible, feature-rich media players with components, hooks, and utilities."
+---
+
+<Note>
+  **Beta** — `@videojs/react` is close to stable. Experimental adoption in real projects is welcome.
+</Note>
+
+`@videojs/react` is a comprehensive library for building media players in React applications. It provides a complete set of components, hooks, and utilities for creating feature-rich, accessible video and audio players.
+
+## Installation
+
+<CodeGroup>
+
+```bash npm
+npm install @videojs/react
+```
+
+```bash pnpm
+pnpm add @videojs/react
+```
+
+```bash yarn
+yarn add @videojs/react
+```
+
+```bash bun
+bun add @videojs/react
+```
+
+</CodeGroup>
+
+**Peer dependency:** React `>=16.8.0` must be installed in your project.
+
+## Exports
+
+| Entry point | Description |
+|---|---|
+| `.` | Main entry — core exports, React primitives, UI components, hooks, and utilities |
+| `./video` | Video player preset with default skin and layout |
+| `./audio` | Audio player preset |
+| `./background` | Background player preset |
+| `./media/*` | Individual media component modules |
+
+## Quick start
+
+Use a preset for the fastest path to a working player:
+
+```tsx
+import { Player, PlayerSkin } from '@videojs/react/video';
+import '@videojs/react/video/skin.css';
+
+export function App() {
+  return (
+    <Player src="https://example.com/video.m3u8">
+      <PlayerSkin />
+    </Player>
+  );
+}
+```
+
+## Key API
+
+### Player setup
+
+```tsx
+import { createPlayer, Container } from '@videojs/react';
+
+const { Provider } = createPlayer({
+  features: [/* feature modules */],
+});
+
+function App() {
+  return (
+    <Provider src="https://example.com/video.m3u8">
+      <Container>
+        {/* player UI */}
+      </Container>
+    </Provider>
+  );
+}
+```
+
+### Hooks
+
+```tsx
+import { usePlayer, useMedia, usePlayerContext } from '@videojs/react';
+
+// Access the player controller
+const player = usePlayer();
+
+// Access media state
+const media = useMedia();
+
+// Access the full player context
+const context = usePlayerContext();
+```
+
+### UI components
+
+All standard player controls are available as composable React components:
+
+```tsx
+import {
+  Controls,
+  PlayButton,
+  MuteButton,
+  VolumeSlider,
+  TimeSlider,
+  Time,
+  FullscreenButton,
+  PiPButton,
+  CaptionsButton,
+  PlaybackRateButton,
+  SeekButton,
+  BufferingIndicator,
+  Poster,
+  Thumbnail,
+  Tooltip,
+  Popover,
+  AlertDialog,
+} from '@videojs/react';
+```
+
+### State management
+
+```tsx
+import { createSelector, useSelector, useStore, shallowEqual } from '@videojs/react';
+
+const selectVolume = createSelector((state) => state.volume);
+
+function VolumeDisplay() {
+  const volume = useSelector(selectVolume);
+  return <span>{Math.round(volume * 100)}%</span>;
+}
+```
+
+### Utilities
+
+```tsx
+import { mergeProps, renderElement, useButton, useSlider } from '@videojs/react';
+
+// Merge multiple prop objects (useful for compound components)
+const merged = mergeProps(defaultProps, userProps);
+
+// Build accessible button behavior
+const buttonProps = useButton({ onClick: handleClick });
+
+// Build accessible slider behavior
+const sliderProps = useSlider({ min: 0, max: 100, value: 50 });
+```
+
+## Exports reference
+
+### Player API
+
+| Export | Type | Description |
+|---|---|---|
+| `createPlayer` | Function | Creates a player instance with a React `Provider` component |
+| `Container` | Component | Root container that connects child components to the player |
+| `usePlayer` | Hook | Returns the player controller |
+| `usePlayerContext` | Hook | Returns the full player context value |
+| `useMedia` | Hook | Returns current media element state |
+| `useMediaRegistration` | Hook | Registers a media element with the player |
+
+### UI components
+
+| Export | Description |
+|---|---|
+| `PlayButton` | Play/pause toggle |
+| `MuteButton` | Mute/unmute toggle |
+| `FullscreenButton` | Fullscreen toggle |
+| `PiPButton` | Picture-in-picture toggle |
+| `SeekButton` | Seek forward/backward by a fixed interval |
+| `CaptionsButton` | Captions/subtitles toggle |
+| `PlaybackRateButton` | Playback speed selector |
+| `TimeSlider` | Scrubber/seek bar |
+| `VolumeSlider` | Volume control slider |
+| `Slider` | Generic accessible slider primitive |
+| `Time` | Current time / duration display |
+| `Thumbnail` | Preview thumbnail |
+| `BufferingIndicator` | Loading/buffering state indicator |
+| `Poster` | Video poster image |
+| `Controls` | Layout container for grouping controls |
+| `Tooltip` | Accessible tooltip |
+| `Popover` | Accessible popover |
+| `AlertDialog` | Accessible alert dialog |
+
+### Utilities
+
+| Export | Description |
+|---|---|
+| `mergeProps` | Merges multiple prop objects, combining event handlers |
+| `renderElement` | Renders a component or render function |
+| `useButton` | Hook returning accessible button props |
+| `useSlider` | Hook returning accessible slider props |
+| `createSelector` | Creates a memoized state selector |
+| `shallowEqual` | Shallow equality comparator |
+| `useSelector` | React hook for subscribing to store state |
+| `useStore` | React hook returning the raw store |
+
+## Dependencies
+
+| Package | Role |
+|---|---|
+| `@videojs/core` | Core player logic and feature definitions |
+| `@videojs/store` | Reactive state management |
+| `@videojs/spf` | Stream Processing Framework |
+| `@videojs/utils` | Shared utility functions |
+
+## Related packages
+
+<CardGroup cols={2}>
+  <Card title="@videojs/core" icon="layers" href="/packages/core">
+    Runtime-agnostic core used by this package.
+  </Card>
+  <Card title="@videojs/html" icon="code" href="/packages/html">
+    Web Components alternative for framework-free environments.
+  </Card>
+  <Card title="@videojs/store" icon="database" href="/packages/store">
+    Reactive state management powering useSelector and useStore.
+  </Card>
+  <Card title="@videojs/utils" icon="wrench" href="/packages/utils">
+    Shared utilities used across the stack.
+  </Card>
+</CardGroup>

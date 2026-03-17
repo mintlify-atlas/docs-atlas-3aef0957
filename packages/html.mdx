@@ -1,0 +1,166 @@
+---
+title: "@videojs/html"
+description: "HTML Custom Elements library for building media players with vanilla JavaScript and Web Components."
+---
+
+<Note>
+  **Beta** — `@videojs/html` is close to stable. Experimental adoption in real projects is welcome.
+</Note>
+
+`@videojs/html` is a comprehensive library for building media players with vanilla JavaScript and Web Components. It provides a complete set of Custom Elements, state management, controllers, and utilities for creating feature-rich, accessible video and audio players — no framework required.
+
+## Installation
+
+<CodeGroup>
+
+```bash npm
+npm install @videojs/html
+```
+
+```bash pnpm
+pnpm add @videojs/html
+```
+
+```bash yarn
+yarn add @videojs/html
+```
+
+```bash bun
+bun add @videojs/html
+```
+
+</CodeGroup>
+
+### CDN
+
+For quick embedding without a build step, load the video preset directly from a CDN:
+
+```html
+<script type="module" src="https://cdn.jsdelivr.net/npm/@videojs/html/cdn/video/player.js"></script>
+```
+
+## Quick start
+
+```html
+<script type="module">
+  import '@videojs/html/video';
+</script>
+
+<video-player>
+  <source src="https://example.com/video.m3u8" type="application/x-mpegURL">
+  <video-skin></video-skin>
+</video-player>
+```
+
+## Exports
+
+| Entry point | Description |
+|---|---|
+| `.` | Core APIs — `createPlayer`, `PlayerController`, and related utilities |
+| `./video` | Video preset — registers `video-player`, `video-skin`, and `hls-video` elements |
+| `./audio` | Audio preset — registers audio player elements |
+| `./background` | Background preset — registers background player elements |
+| `./ui/*` | Individual UI custom element definitions |
+| `./feature/*` | Individual feature module definitions |
+| `./media/*` | Individual media custom element definitions |
+
+### Presets
+
+Presets are the fastest way to get a working player. Each preset imports and defines a curated set of custom elements in one line:
+
+```typescript
+// Register all video player elements at once
+import '@videojs/html/video';
+
+// Or register only what you need
+import '@videojs/html/video/player';  // <video-player>
+import '@videojs/html/video/skin';    // <video-skin>
+import '@videojs/html/video/video';   // <hls-video>
+```
+
+### Individual elements
+
+For fine-grained tree-shaking, import individual element definitions:
+
+```typescript
+import '@videojs/html/ui/play-button';
+import '@videojs/html/ui/mute-button';
+import '@videojs/html/ui/time-slider';
+import '@videojs/html/media/hls-video';
+```
+
+## Custom elements
+
+### Player structure
+
+| Element | Description |
+|---|---|
+| `video-player` | Root player container, manages state and lifecycle |
+| `video-skin` | Default skin layout, assembles controls into a complete UI |
+| `hls-video` | `<video>` element with HLS and DASH playback support |
+
+### Controls
+
+| Element | Description |
+|---|---|
+| `media-play-button` | Play/pause toggle |
+| `media-mute-button` | Mute/unmute toggle |
+| `media-fullscreen-button` | Fullscreen toggle |
+| `media-pip-button` | Picture-in-picture toggle |
+| `media-seek-button` | Seek forward/backward by a fixed interval |
+| `media-captions-button` | Captions/subtitles toggle |
+| `media-playback-rate-button` | Playback speed selector |
+| `media-time-slider` | Scrubber/seek bar |
+| `media-volume-slider` | Volume control slider |
+| `media-time-display` | Current time / duration display |
+| `media-thumbnail` | Preview thumbnail |
+| `media-buffering-indicator` | Loading/buffering state indicator |
+| `media-poster` | Video poster image |
+| `media-controls` | Layout container for grouping controls |
+| `media-tooltip` | Accessible tooltip |
+| `media-popover` | Accessible popover |
+
+## Programmatic API
+
+```typescript
+import { createPlayer } from '@videojs/html';
+
+const { controller, mount } = createPlayer({
+  features: [/* feature modules */],
+});
+
+// Mount into a container element
+mount(document.querySelector('#player'));
+
+// Control playback
+controller.play();
+controller.pause();
+controller.seek(30);
+```
+
+## Dependencies
+
+| Package | Role |
+|---|---|
+| `@videojs/core` | Core player logic and feature definitions |
+| `@videojs/element` | Custom element base classes and mixins |
+| `@videojs/store` | Reactive state management |
+| `@videojs/spf` | Stream Processing Framework |
+| `@videojs/utils` | Shared utility functions |
+
+## Related packages
+
+<CardGroup cols={2}>
+  <Card title="@videojs/react" icon="atom" href="/packages/react">
+    React components alternative using the same core.
+  </Card>
+  <Card title="@videojs/core" icon="layers" href="/packages/core">
+    Runtime-agnostic core used by this package.
+  </Card>
+  <Card title="@videojs/store" icon="database" href="/packages/store">
+    Reactive state management used by custom elements.
+  </Card>
+  <Card title="@videojs/spf" icon="bolt" href="/packages/spf">
+    Stream Processing Framework for HLS and DASH.
+  </Card>
+</CardGroup>

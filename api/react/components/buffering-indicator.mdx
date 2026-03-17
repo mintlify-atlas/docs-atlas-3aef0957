@@ -1,0 +1,88 @@
+---
+title: "BufferingIndicator"
+description: "Loading indicator that shows when the player is buffering or waiting for data."
+---
+
+`BufferingIndicator` shows a loading indicator when the media is waiting to buffer and not paused, but only after a configurable `delay` (default 500ms). This delay prevents the indicator from flickering during brief stalls. The indicator hides immediately when buffering ends.
+
+<Note>
+  Requires the `playback` feature to be registered with the player.
+</Note>
+
+## Import
+
+```tsx
+import { BufferingIndicator } from '@videojs/react';
+```
+
+## Basic Usage
+
+```tsx
+import { BufferingIndicator } from '@videojs/react';
+
+function Player() {
+  return (
+    <div className="player-container">
+      {/* ... video element ... */}
+      <BufferingIndicator className="spinner" />
+    </div>
+  );
+}
+```
+
+### Custom Render
+
+```tsx
+import { BufferingIndicator } from '@videojs/react';
+import { Spinner } from './icons';
+
+function Player() {
+  return (
+    <BufferingIndicator
+      render={(props, state) => (
+        <div {...props}>
+          {state.visible && <Spinner />}
+        </div>
+      )}
+    />
+  );
+}
+```
+
+## Props
+
+<ParamField path="delay" type="number">
+  Milliseconds to wait before showing the indicator. Defaults to `500`. Set to `0` to show immediately.
+</ParamField>
+
+<ParamField path="render" type="ReactElement | ((props: HTMLProps, state: BufferingIndicator.State) => ReactElement | null)">
+  Custom render prop. Receives the computed HTML props and current state.
+</ParamField>
+
+<ParamField path="className" type="string | ((state: BufferingIndicator.State) => string)">
+  CSS class name or a function that receives state and returns a class name.
+</ParamField>
+
+<ParamField path="style" type="CSSProperties | ((state: BufferingIndicator.State) => CSSProperties)">
+  Inline style or a function that receives state and returns a style object.
+</ParamField>
+
+## State Data Attributes
+
+| Attribute | Description |
+|-----------|-------------|
+| `data-visible` | Present when the buffering indicator should be displayed (after the delay has elapsed). |
+
+### CSS Styling Example
+
+```css
+/* Hidden by default */
+.spinner {
+  display: none;
+}
+
+/* Show when buffering */
+.spinner[data-visible] {
+  display: block;
+}
+```

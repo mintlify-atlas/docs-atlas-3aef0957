@@ -1,0 +1,87 @@
+---
+title: "buffer"
+description: "Buffered and seekable time range state for the player store"
+---
+
+Read-only — tracks buffered and seekable time ranges from the media element. Used by `TimeSlider` to render the buffer progress indicator.
+
+## Import
+
+```ts
+import { buffer, selectBuffer } from '@videojs/react';
+// or
+import { buffer, selectBuffer } from '@videojs/html';
+```
+
+## Usage
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { createPlayer, buffer } from '@videojs/react';
+
+    const Player = createPlayer({
+      features: [buffer],
+    });
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import { createPlayer, buffer } from '@videojs/html';
+
+    const { ProviderMixin, PlayerController, context } = createPlayer({
+      features: [buffer],
+    });
+    ```
+  </Tab>
+</Tabs>
+
+## State
+
+<ResponseField name="buffered" type="[number, number][]">
+  Buffered time ranges as an array of `[start, end]` tuples in seconds.
+</ResponseField>
+
+<ResponseField name="seekable" type="[number, number][]">
+  Seekable time ranges as an array of `[start, end]` tuples in seconds.
+</ResponseField>
+
+## Selector
+
+Use `selectBuffer` to subscribe to only the buffer slice of state. Returns `undefined` if the buffer feature is not configured.
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { selectBuffer, usePlayer } from '@videojs/react';
+
+    function BufferBar() {
+      const buffer = usePlayer(selectBuffer);
+      if (!buffer) return null;
+
+      const firstRange = buffer.buffered[0];
+      const bufferedEnd = firstRange ? firstRange[1] : 0;
+
+      return (
+        <div style={{ width: `${bufferedEnd}px` }} />
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import { createPlayer, MediaElement, selectBuffer } from '@videojs/html';
+    import { videoFeatures } from '@videojs/html/video';
+
+    const { PlayerController, context } = createPlayer({ features: videoFeatures });
+
+    class BufferBar extends MediaElement {
+      readonly #buffer = new PlayerController(this, context, selectBuffer);
+    }
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+  This feature is read-only — there are no actions. Buffer state is updated automatically as the media element loads data.
+</Note>

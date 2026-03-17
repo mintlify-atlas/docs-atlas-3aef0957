@@ -1,0 +1,122 @@
+---
+title: "@videojs/spf"
+description: "Stream Processing Framework — a unified interface for HLS and MPEG-DASH playback, abstracting hls.js and dash.js."
+---
+
+<Note>
+  **Beta** — `@videojs/spf` is close to stable. Experimental adoption in real projects is welcome.
+</Note>
+
+`@videojs/spf` is the Stream Processing Framework powering adaptive bitrate (ABR) playback in Video.js 10. It provides a unified interface that abstracts `hls.js` and `dash.js` behind a common playback engine API, so the rest of the stack does not need to handle streaming library specifics.
+
+This package is used internally by `@videojs/core`. You do not need to install it directly unless you are building a custom integration.
+
+## Installation
+
+<CodeGroup>
+
+```bash npm
+npm install @videojs/spf
+```
+
+```bash pnpm
+pnpm add @videojs/spf
+```
+
+```bash yarn
+yarn add @videojs/spf
+```
+
+```bash bun
+bun add @videojs/spf
+```
+
+</CodeGroup>
+
+## Exports
+
+| Entry point | Description |
+|---|---|
+| `.` | Core SPF — runtime-agnostic stream processing logic |
+| `./dom` | DOM-specific SPF — attaches the playback engine to a media element |
+| `./playback-engine` | Playback engine abstraction — unified interface over hls.js and dash.js |
+
+## Architecture
+
+SPF separates stream processing into two layers:
+
+```text
+@videojs/spf          — runtime-agnostic stream logic
+@videojs/spf/dom      — DOM attachment, event wiring, media element lifecycle
+@videojs/spf/playback-engine  — adapts hls.js / dash.js to a common interface
+```
+
+This separation keeps the core logic testable without a browser, while the DOM layer handles the specifics of attaching to a `<video>` or `<audio>` element.
+
+## Usage
+
+In most cases you will use SPF indirectly through `@videojs/core`. For custom integrations, the playback engine abstraction provides a stable API:
+
+```typescript
+import { createPlaybackEngine } from '@videojs/spf/playback-engine';
+
+const engine = createPlaybackEngine({
+  media: document.querySelector('video'),
+});
+
+// Load a source — engine selects hls.js or dash.js automatically
+await engine.load('https://example.com/stream.m3u8');
+
+// The engine fires standard media events on the attached element
+```
+
+### DOM attachment
+
+```typescript
+import { attachSpf } from '@videojs/spf/dom';
+
+const detach = attachSpf({
+  media: document.querySelector('video'),
+  src: 'https://example.com/stream.mpd',
+});
+
+// Clean up when done
+detach();
+```
+
+## Bundle size
+
+SPF ships a bundle size measurement script. Run from the monorepo root:
+
+```bash
+# Measure public API (minified + gzipped)
+pnpm -F @videojs/spf size
+
+# Measure all exports (minified + gzipped)
+pnpm -F @videojs/spf size:all
+```
+
+## Dependencies
+
+| Package | Role |
+|---|---|
+| `@videojs/utils` | Shared utility functions |
+
+SPF does not bundle `hls.js` or `dash.js` directly — those are provided by `@videojs/core` as dependencies so they are deduplicated across the stack.
+
+## Related packages
+
+<CardGroup cols={2}>
+  <Card title="@videojs/core" icon="layers" href="/packages/core">
+    Core package that consumes SPF for stream handling.
+  </Card>
+  <Card title="@videojs/utils" icon="wrench" href="/packages/utils">
+    Shared utilities used by SPF.
+  </Card>
+  <Card title="@videojs/html" icon="code" href="/packages/html">
+    HTML player that uses SPF via core.
+  </Card>
+  <Card title="@videojs/react" icon="atom" href="/packages/react">
+    React player that uses SPF via core.
+  </Card>
+</CardGroup>

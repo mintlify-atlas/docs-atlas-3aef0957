@@ -1,0 +1,148 @@
+---
+title: "useStore()"
+description: "Hook for accessing store state and actions, with optional selector-based reactive subscriptions."
+---
+
+`useStore` subscribes to a store instance directly. It mirrors the two-overload API of `Player.usePlayer` — call it without a selector to get the store for imperative actions, or pass a selector to subscribe to derived state.
+
+Exported from `@videojs/store/react` and re-exported from `@videojs/react`.
+
+```tsx
+import { useStore } from '@videojs/react';
+// or:
+import { useStore } from '@videojs/store/react';
+```
+
+When working inside a player provider, `Player.usePlayer` is usually simpler since it reads the store from context automatically. Use `useStore` when you have a store instance directly or need to derive computed values from it.
+
+## Overloads
+
+### Without selector — store access
+
+Returns the store instance. The component does **not** subscribe to state changes.
+
+```tsx
+function Controls({ store }) {
+  const { setVolume } = useStore(store);
+  return <button onClick={() => setVolume(0.5)}>Half volume</button>;
+}
+```
+
+<ParamField path="store" type="S extends AnyStore" required>
+  The store instance to access.
+</ParamField>
+
+**Returns:** `S` — the same store instance passed in.
+
+### With selector — reactive subscription
+
+Derives and subscribes to a value from store state. Re-renders when the derived value changes (shallow equality by default).
+
+```tsx
+function PlayButton({ store }) {
+  const paused = useStore(store, (s) => s.paused);
+  return <button onClick={() => store.dispatch('toggle-playback')}>
+    {paused ? 'Play' : 'Pause'}
+  </button>;
+}
+```
+
+<ParamField path="store" type="S extends AnyStore" required>
+  The store instance to subscribe to.
+</ParamField>
+
+<ParamField path="selector" type="(state: InferStoreState<S>) => R" required>
+  A function that derives a value from the store state. The component re-renders when the returned value changes.
+</ParamField>
+
+<ParamField path="isEqual" type="(a: R, b: R) => boolean" default="shallowEqual">
+  Custom equality function. Defaults to `shallowEqual`. Pass `Object.is` for reference equality or a custom comparator for deep comparison.
+</ParamField>
+
+**Returns:** `R` — the value returned by the selector.
+
+## Usage
+
+### Store access (no subscription)
+
+Get the store to call actions. The component does not re-render on state changes:
+
+```tsx
+function VolumeControls({ store }) {
+  const s = useStore(store);
+
+  return (
+    <div>
+      <button onClick={() => s.setVolume(0)}>Mute</button>
+      <button onClick={() => s.setVolume(1)}>Max</button>
+    </div>
+  );
+}
+```
+
+### Derived state subscription
+
+Subscribe to computed values. The component re-renders only when the derived value changes:
+
+```tsx
+function ProgressBar({ store }) {
+  const progress = useStore(store, (s) =>
+    s.duration > 0 ? s.currentTime / s.duration : 0
+  );
+
+  return <progress value={progress} max={1} />;
+}
+```
+
+### Multiple state values
+
+Return a flat object from the selector. `shallowEqual` compares each property independently, so the component only re-renders when one of them changes:
+
+```tsx
+function StatusBar({ store }) {
+  const { paused, muted, volume } = useStore(store, (s) => ({
+    paused: s.paused,
+    muted: s.muted,
+    volume: s.volume,
+  }));
+
+  return (
+    <div>
+      <span>{paused ? 'Paused' : 'Playing'}</span>
+      <span>{muted ? 'Muted' : `${Math.round(volume * 100)}%`}</span>
+    </div>
+  );
+}
+```
+
+## Relationship to usePlayer
+
+`Player.usePlayer` is built on `useStore`. The only difference is that `usePlayer` reads the store from React context, so you don't need to pass it explicitly:
+
+```tsx
+// useStore — explicit store argument
+const paused = useStore(store, (s) => s.paused);
+
+// Player.usePlayer — reads store from context
+const paused = Player.usePlayer((s) => s.paused);
+```
+
+Use `Player.usePlayer` inside a `Player.Provider`. Use `useStore` when you have a store instance from outside a provider context, or when building utilities that work with arbitrary stores.
+
+## TypeScript signature
+
+```ts
+type AnyStore = { state: any; subscribe: (cb: () => void) => () => void };
+type Selector<S, R> = (state: S) => R;
+type Comparator<R> = (a: R, b: R) => boolean;
+
+// Without selector — returns store (no subscription)
+function useStore<S extends AnyStore>(store: S): S;
+
+// With selector — returns derived value (subscribes to changes)
+function useStore<S extends AnyStore, R>(
+  store: S,
+  selector: Selector<InferStoreState<S>, R>,
+  isEqual?: Comparator<R>
+): R;
+```

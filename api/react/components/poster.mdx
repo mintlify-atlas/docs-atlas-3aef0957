@@ -1,0 +1,87 @@
+---
+title: "Poster"
+description: "Poster image component that displays a thumbnail until video playback starts."
+---
+
+`Poster` renders an `<img>` element that is visible before playback starts. Once the user plays or seeks, the poster hides permanently — pausing does not bring it back. The poster reappears when a new source is loaded.
+
+<Note>
+  Requires the `playback` feature to be registered with the player.
+</Note>
+
+## Import
+
+```tsx
+import { Poster } from '@videojs/react';
+```
+
+## Basic Usage
+
+```tsx
+import { Poster } from '@videojs/react';
+
+function Player() {
+  return (
+    <div className="player-container">
+      {/* ... video element ... */}
+      <Poster
+        src="https://example.com/poster.jpg"
+        alt="Preview of the video"
+        className="poster"
+      />
+    </div>
+  );
+}
+```
+
+## Props
+
+`Poster` accepts all standard `<img>` element props in addition to the following:
+
+<ParamField path="src" type="string">
+  URL of the poster image. Passed directly to the underlying `<img>` element.
+</ParamField>
+
+<ParamField path="alt" type="string">
+  Accessible text alternative for the image. Use an empty string (`alt=""`) to mark the image as decorative.
+</ParamField>
+
+<ParamField path="className" type="string | ((state: Poster.State) => string)">
+  CSS class name or a function that receives state and returns a class name.
+</ParamField>
+
+<ParamField path="style" type="CSSProperties | ((state: Poster.State) => CSSProperties)">
+  Inline style or a function that receives state and returns a style object.
+</ParamField>
+
+<ParamField path="render" type="ReactElement | ((props: HTMLProps, state: Poster.State) => ReactElement | null)">
+  Custom render prop for full element control.
+</ParamField>
+
+## State Data Attributes
+
+| Attribute | Description |
+|-----------|-------------|
+| `data-visible` | Present when the poster should be shown (before first play or seek). |
+
+### CSS Styling Example
+
+```css
+.poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.3s;
+}
+
+.poster:not([data-visible]) {
+  opacity: 0;
+  pointer-events: none;
+}
+```
+
+## Accessibility
+
+Unlike the native `<video poster>` attribute, `Poster` allows you to provide accessible text alternatives via `alt`. Describe the image (e.g., `alt="Conference keynote speaker"`) or mark it as decorative with `alt=""`.

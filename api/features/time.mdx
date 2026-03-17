@@ -1,0 +1,96 @@
+---
+title: "time"
+description: "Playback position and duration state for the player store"
+---
+
+Tracks playback position and duration. Required by `TimeSlider`, time display components, and `SeekButton`.
+
+## Import
+
+```ts
+import { time, selectTime } from '@videojs/react';
+// or
+import { time, selectTime } from '@videojs/html';
+```
+
+## Usage
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { createPlayer, time } from '@videojs/react';
+
+    const Player = createPlayer({
+      features: [time],
+    });
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import { createPlayer, time } from '@videojs/html';
+
+    const { ProviderMixin, PlayerController, context } = createPlayer({
+      features: [time],
+    });
+    ```
+  </Tab>
+</Tabs>
+
+## State
+
+<ResponseField name="currentTime" type="number">
+  Current playback position in seconds.
+</ResponseField>
+
+<ResponseField name="duration" type="number">
+  Total duration of the media in seconds. `0` if unknown.
+</ResponseField>
+
+<ResponseField name="seeking" type="boolean">
+  Whether a seek operation is currently in progress.
+</ResponseField>
+
+## Actions
+
+<ResponseField name="seek(time)" type="(time: number) => Promise<void>">
+  Seek to a position in seconds. Returns a promise that resolves when seeking is complete.
+</ResponseField>
+
+## Selector
+
+Use `selectTime` to subscribe to only the time slice of state. Returns `undefined` if the time feature is not configured.
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { selectTime, usePlayer } from '@videojs/react';
+
+    function TimeDisplay() {
+      const time = usePlayer(selectTime);
+      if (!time) return null;
+
+      return (
+        <span>
+          {Math.floor(time.currentTime)} / {Math.floor(time.duration)}
+        </span>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import { createPlayer, MediaElement, selectTime } from '@videojs/html';
+    import { videoFeatures } from '@videojs/html/video';
+
+    const { PlayerController, context } = createPlayer({ features: videoFeatures });
+
+    class TimeDisplay extends MediaElement {
+      readonly #time = new PlayerController(this, context, selectTime);
+    }
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+  Required by: `TimeSlider`, `CurrentTime`, `Duration`, `SeekButton`
+</Note>

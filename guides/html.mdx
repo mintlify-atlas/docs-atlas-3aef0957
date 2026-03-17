@@ -1,0 +1,208 @@
+---
+title: "HTML custom elements"
+description: "Use Video.js v10 in any HTML page or framework-free project with @videojs/html custom elements."
+---
+
+`@videojs/html` provides a set of custom elements that work in any browser without a JS framework. Each element registers itself via a side-effect import.
+
+## Prerequisites
+
+`@videojs/html` installed (see [Installation](/guides/installation)).
+
+## Quick start
+
+<Steps>
+  <Step title="Import the custom elements">
+    Each element registers itself as a global custom element via a side-effect import. Import the player, skin, and CSS:
+
+    ```ts index.ts
+    import '@videojs/html/video/player';
+    import '@videojs/html/video/skin';
+    import '@videojs/html/video/skin.css';
+    ```
+  </Step>
+  <Step title="Add the markup">
+    Use `<video-player>` as the root, `<video-skin>` as the UI wrapper, and a standard `<video>` with `slot="media"` as the media source:
+
+    ```html index.html
+    <video-player>
+      <video-skin>
+        <video slot="media" src="https://example.com/movie.mp4"></video>
+      </video-skin>
+    </video-player>
+    ```
+  </Step>
+</Steps>
+
+## Available presets
+
+Each preset provides a player element, one or more skin elements, and an optional media element:
+
+| Preset | Player element | Skin elements | Media element |
+|---|---|---|---|
+| `/video` | `<video-player>` | `<video-skin>`, `<video-minimal-skin>` | `<video>` |
+| `/audio` | `<audio-player>` | `<audio-skin>`, `<audio-minimal-skin>` | `<audio>` |
+| `/background` | `<background-video-player>` | `<background-video-skin>` | `<background-video>` |
+
+### Audio preset example
+
+```ts
+import '@videojs/html/audio/player';
+import '@videojs/html/audio/skin';
+import '@videojs/html/audio/skin.css';
+```
+
+```html
+<audio-player>
+  <audio-skin>
+    <audio slot="media" src="https://example.com/podcast.mp3"></audio>
+  </audio-skin>
+</audio-player>
+```
+
+### Background video preset example
+
+```ts
+import '@videojs/html/background/player';
+import '@videojs/html/background/video';
+import '@videojs/html/background/skin';
+import '@videojs/html/background/skin.css';
+```
+
+```html
+<background-video-player>
+  <background-video-skin>
+    <background-video slot="media" src="hero.mp4"></background-video>
+  </background-video-skin>
+</background-video-player>
+```
+
+## Individual UI elements
+
+You can import individual UI elements from `@videojs/html/ui/*` to compose your own layout without using a preset skin:
+
+```ts
+import '@videojs/html/video/player';
+import '@videojs/html/media/container';
+import '@videojs/html/ui/play-button';
+import '@videojs/html/ui/mute-button';
+import '@videojs/html/ui/volume-slider';
+import '@videojs/html/ui/fullscreen-button';
+import '@videojs/html/ui/time-slider';
+```
+
+```html
+<video-player>
+  <media-container>
+    <video slot="media" src="movie.mp4"></video>
+    <media-play-button>Play / Pause</media-play-button>
+    <media-time-slider></media-time-slider>
+    <media-mute-button>Mute</media-mute-button>
+    <media-volume-slider></media-volume-slider>
+    <media-fullscreen-button>Fullscreen</media-fullscreen-button>
+  </media-container>
+</video-player>
+```
+
+Available UI elements include:
+
+| Element | Purpose |
+|---|---|
+| `<media-play-button>` | Play / pause toggle |
+| `<media-mute-button>` | Mute / unmute toggle |
+| `<media-volume-slider>` | Volume level slider |
+| `<media-time-slider>` | Seek / progress slider |
+| `<media-fullscreen-button>` | Fullscreen toggle |
+| `<media-pip-button>` | Picture-in-picture toggle |
+| `<media-seek-button>` | Jump forward or backward by `seconds` |
+| `<media-playback-rate-button>` | Cycle through playback rates |
+| `<media-captions-button>` | Toggle captions |
+| `<media-buffering-indicator>` | Shown while buffering |
+| `<media-container>` | Layout wrapper for media + controls |
+| `<media-controls>` | Controls bar |
+
+## State reflection via data-* attributes
+
+Custom elements reflect player state as `data-*` attributes on the element. Use CSS to respond to state changes:
+
+```css
+/* Show play icon only when paused */
+media-play-button .play-icon { display: none; }
+media-play-button[data-paused] .play-icon { display: inline; }
+
+/* Show pause icon only when playing */
+media-play-button .pause-icon { display: none; }
+media-play-button:not([data-paused]) .pause-icon { display: inline; }
+
+/* Hide fullscreen button on platforms that don't support it */
+media-fullscreen-button[data-availability="unsupported"] { display: none; }
+```
+
+## Access state in JavaScript with PlayerController
+
+Use `PlayerController` to read player state and call actions from JavaScript. Import a feature selector such as `selectPlayback` to subscribe to a specific slice of state:
+
+```ts
+import { createPlayer, playback, volume, time, MediaElement } from '@videojs/html';
+import { selectPlayback } from '@videojs/html';
+
+const { ProviderMixin, context } = createPlayer({
+  features: [playback, volume, time],
+});
+
+class PlayToggle extends HTMLElement {
+  readonly #playback = new PlayerController(this, context, selectPlayback);
+
+  connectedCallback() {
+    this.addEventListener('click', () => {
+      const state = this.#playback.value;
+      if (state?.paused) {
+        state.play();
+      } else {
+        state?.pause();
+      }
+    });
+  }
+}
+```
+
+## Create a custom player element
+
+Use `createPlayer()` to define a player element with a specific set of features, then extend `ProviderMixin` to register it as a custom element:
+
+```ts
+import { createPlayer, playback, volume, time, fullscreen, MediaElement } from '@videojs/html';
+
+const { ProviderMixin } = createPlayer({
+  features: [playback, volume, time, fullscreen],
+});
+
+class MyVideoPlayer extends ProviderMixin(MediaElement) {
+  static readonly tagName = 'my-video-player';
+}
+
+customElements.define('my-video-player', MyVideoPlayer);
+```
+
+```html
+<my-video-player>
+  <media-container>
+    <video slot="media" src="movie.mp4"></video>
+    <media-play-button>Play</media-play-button>
+  </media-container>
+</my-video-player>
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Media sources" icon="play" href="/guides/media-sources">
+    Add HLS, DASH, and other streaming formats.
+  </Card>
+  <Card title="Custom features" icon="puzzle" href="/guides/custom-features">
+    Compose and extend the player's feature set.
+  </Card>
+  <Card title="Custom skins" icon="palette" href="/guides/custom-skins">
+    Build your own skin from individual UI elements.
+  </Card>
+</CardGroup>

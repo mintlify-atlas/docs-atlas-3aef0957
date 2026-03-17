@@ -1,0 +1,125 @@
+---
+title: "createSelector()"
+description: "Create a type-safe selector for a store slice's state."
+---
+
+`createSelector` creates a type-safe selector function for a given store slice. The returned selector extracts that slice's state from the full store state, or returns `undefined` if the slice is not configured in the store.
+
+All built-in selectors (`selectPlayback`, `selectVolume`, etc.) are created with `createSelector`. Use it to create selectors for custom slices.
+
+## Import
+
+```ts
+import { createSelector } from '@videojs/store';
+```
+
+## Signature
+
+```ts
+function createSelector<S extends AnySlice>(
+  slice: S
+): Selector<object, InferSliceState<S> | undefined>
+```
+
+## Parameters
+
+<ParamField path="slice" type="AnySlice" required>
+  The store slice to create a selector for. The slice's `name` becomes the
+  `displayName` of the returned selector.
+</ParamField>
+
+## Return value
+
+<ResponseField name="selector" type="Selector">
+  A selector function `(state: object) => SliceState | undefined`. Returns the
+  slice's state object when the slice is configured in the store, or `undefined`
+  when it is not. The function also has a `displayName` property set to the
+  slice's name.
+</ResponseField>
+
+## Usage
+
+### Create a selector for a custom slice
+
+```ts title="my-custom-selector.ts"
+import { createSelector } from '@videojs/store';
+import { myCustomSlice } from './my-custom-slice';
+
+const selectCustom = createSelector(myCustomSlice);
+
+// Pass to usePlayer (React) or PlayerController (HTML)
+const state = selectCustom(store.state); // MyCustomState | undefined
+
+// The displayName reflects the slice name
+console.log(selectCustom.displayName); // 'myCustom'
+```
+
+### Use with `usePlayer` in React
+
+```tsx title="CustomFeatureDisplay.tsx"
+import { createSelector } from '@videojs/store';
+import { usePlayer } from '@videojs/react';
+import { myCustomSlice } from './my-custom-slice';
+
+const selectCustom = createSelector(myCustomSlice);
+
+function CustomFeatureDisplay() {
+  const custom = usePlayer(selectCustom);
+
+  if (!custom) return null;
+
+  return <div>{custom.someValue}</div>;
+}
+```
+
+## `shallowEqual`
+
+`shallowEqual` is a shallow comparison utility exported alongside `createSelector`. It compares two values one level deep and is the default equality comparator used across `useStore`, `useSnapshot`, and `useSelector`.
+
+```ts
+import { shallowEqual } from '@videojs/store';
+// Also available from @videojs/store/react
+```
+
+Passing `shallowEqual` explicitly is useful when composing multiple selectors into a derived object and you want to avoid unnecessary re-renders:
+
+```tsx title="ComposedSelector.tsx"
+import { usePlayer, selectPlayback, selectVolume, shallowEqual } from '@videojs/react';
+import { useSelector } from '@videojs/react';
+
+function PlayerStatus() {
+  // Derive a new object from two slices.
+  // shallowEqual prevents re-renders when the derived shape is identical.
+  const { paused, muted } = usePlayer(
+    (state) => ({
+      paused: selectPlayback(state)?.paused ?? true,
+      muted: selectVolume(state)?.muted ?? false,
+    }),
+    shallowEqual
+  );
+
+  return (
+    <div>
+      {paused ? 'Paused' : 'Playing'} — {muted ? 'Muted' : 'Unmuted'}
+    </div>
+  );
+}
+```
+
+### `shallowEqual` signature
+
+```ts
+function shallowEqual<T>(a: T, b: T): boolean
+```
+
+Returns `true` when both values are identical (`Object.is`) or when they are
+non-null objects with the same own keys and identical values for each key.
+
+## Notes
+
+- The selector returns `undefined` when the slice has no state keys or when the
+  slice is not part of the current store configuration. Always guard against
+  `undefined` in your render logic.
+- Selectors created with `createSelector` are plain functions and can be used
+  outside React — for example, with `PlayerController` and `StoreController`
+  in HTML environments.

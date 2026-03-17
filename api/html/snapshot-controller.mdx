@@ -1,0 +1,140 @@
+---
+title: "SnapshotController"
+description: "Reactive controller that subscribes to a State container and triggers host updates on state changes."
+---
+
+`SnapshotController` subscribes to a `State<T>` container (the reactive primitive that backs a store) and triggers host updates when state changes. It has two overloads:
+
+- **Without a selector** — returns the entire state object. Re-renders on any state change.
+- **With a selector** — returns a derived slice of state. Re-renders only when the selected value changes (shallow equality).
+
+## Signature
+
+```ts
+import { SnapshotController } from '@videojs/store/html';
+
+class SnapshotController<T extends object, R = T>
+  implements ReactiveController
+```
+
+## Constructor
+
+<Tabs>
+  <Tab title="Without selector">
+    ```ts
+    new SnapshotController(host, state)
+    ```
+
+    <ParamField body="host" type="ReactiveControllerHost" required>
+      The host element that owns this controller. Typically `this` inside a custom element class.
+    </ParamField>
+
+    <ParamField body="state" type="State<T>" required>
+      The `State` container to subscribe to. Usually accessed as `store.$state`.
+    </ParamField>
+  </Tab>
+  <Tab title="With selector">
+    ```ts
+    new SnapshotController(host, state, selector)
+    ```
+
+    <ParamField body="host" type="ReactiveControllerHost" required>
+      The host element that owns this controller. Typically `this` inside a custom element class.
+    </ParamField>
+
+    <ParamField body="state" type="State<T>" required>
+      The `State` container to subscribe to. Usually accessed as `store.$state`.
+    </ParamField>
+
+    <ParamField body="selector" type="Selector<T, R>" required>
+      A function that derives a value from the state. The host is re-rendered only when the derived value changes (shallow equality).
+    </ParamField>
+  </Tab>
+</Tabs>
+
+## Properties
+
+<ResponseField name="value" type="R">
+  The current state value:
+
+  - Without a selector: the full state object (`T`).
+  - With a selector: the return value of the selector applied to the current state (`R`).
+
+  Unlike `StoreController.value`, this property never throws — the state container is provided at construction time.
+</ResponseField>
+
+## Methods
+
+<ResponseField name="track(state)" type="void">
+  Switch to a different `State<T>` container at runtime. Tears down the previous subscription and sets up a new one immediately.
+
+  ```ts
+  #state = new SnapshotController(this, initialState);
+
+  switchState(nextState: State<T>) {
+    this.#state.track(nextState);
+  }
+  ```
+</ResponseField>
+
+## Usage
+
+### Full state subscription
+
+```ts
+import { SnapshotController } from '@videojs/store/html';
+
+class SliderDisplay extends HTMLElement {
+  readonly #state = new SnapshotController(this, sliderState);
+
+  render() {
+    const { value, min, max } = this.#state.value;
+    this.textContent = `${value} / ${max}`;
+  }
+}
+
+customElements.define('slider-display', SliderDisplay);
+```
+
+### Selector-based subscription
+
+```ts
+import { SnapshotController } from '@videojs/store/html';
+
+class SliderValue extends HTMLElement {
+  readonly #value = new SnapshotController(
+    this,
+    sliderState,
+    (s) => s.value
+  );
+
+  render() {
+    // Only re-renders when s.value changes
+    this.textContent = String(this.#value.value);
+  }
+}
+
+customElements.define('slider-value', SliderValue);
+```
+
+## Lifecycle
+
+- `hostConnected()` — subscribes to the `State` container.
+- `hostDisconnected()` — unsubscribes and clears the cached value.
+
+The cached selector result is invalidated on disconnect, so reconnection always recomputes from the current state.
+
+## SnapshotController vs StoreController
+
+| | `SnapshotController` | `StoreController` |
+|---|---|---|
+| **Input** | `State<T>` container | Store instance or context |
+| **Subscribes** | Always | Only with a selector |
+| **Resolves store** | No | Yes (from context) |
+| **Use case** | Custom controllers, raw state | Player UI elements |
+
+`SnapshotController` is lower-level and works directly with `State` containers — the reactive primitives that back a store. Use it when building custom controllers or working outside the player store system. For player UI elements, use [`StoreController`](/api/html/store-controller) or [`PlayerController`](/api/html/player-controller).
+
+<Note>
+  `SnapshotController` is the reactive primitive used internally by `StoreController`. When you pass a selector to `StoreController`, it creates a `SnapshotController` on `store.$state` under the hood.
+</Note>

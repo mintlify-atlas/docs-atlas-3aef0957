@@ -1,0 +1,125 @@
+---
+title: "VolumeSlider"
+description: "Volume control slider for adjusting media playback volume."
+---
+
+`VolumeSlider` controls the media volume level. The slider maps its 0–100 internal range to the media's 0–1 volume scale. When the media is muted, the fill level drops to 0 regardless of the stored volume value.
+
+## Sub-components
+
+All `Slider.*` sub-components are available inside `VolumeSlider` via the shared slider context.
+
+| Component | Description |
+|-----------|-------------|
+| `VolumeSlider.Root` | Root slider element. Manages volume state and keyboard controls. |
+
+<Note>
+  Requires the `volume` feature to be registered with the player.
+</Note>
+
+## Import
+
+```tsx
+import { VolumeSlider, Slider } from '@videojs/react';
+```
+
+## Basic Usage
+
+```tsx
+import { VolumeSlider, Slider } from '@videojs/react';
+
+function PlayerControls() {
+  return (
+    <VolumeSlider.Root className="volume-slider">
+      <Slider.Track className="slider-track">
+        <Slider.Fill className="slider-fill" />
+      </Slider.Track>
+      <Slider.Thumb className="slider-thumb" />
+      <Slider.Preview className="slider-preview">
+        <Slider.Value type="pointer" className="slider-value" />
+      </Slider.Preview>
+    </VolumeSlider.Root>
+  );
+}
+```
+
+## VolumeSlider.Root Props
+
+<ParamField path="label" type="string">
+  Override the default `aria-label` of `"Volume"`. Used by screen readers to identify the slider.
+</ParamField>
+
+<ParamField path="step" type="number">
+  Step size for arrow key navigation (0–100 scale). Defaults to `5`.
+</ParamField>
+
+<ParamField path="largeStep" type="number">
+  Large step size for `Page Up` / `Page Down` key navigation. Defaults to `10`.
+</ParamField>
+
+<ParamField path="orientation" type='"horizontal" | "vertical"'>
+  Slider orientation. Defaults to `"horizontal"`.
+</ParamField>
+
+<ParamField path="disabled" type="boolean">
+  Disables the slider.
+</ParamField>
+
+<ParamField path="thumbAlignment" type="string">
+  Controls how the thumb aligns relative to the track at min/max positions.
+</ParamField>
+
+<ParamField path="onDragStart" type="() => void">
+  Called when the user begins dragging the slider thumb.
+</ParamField>
+
+<ParamField path="onDragEnd" type="() => void">
+  Called when the user releases the slider thumb after dragging.
+</ParamField>
+
+<ParamField path="className" type="string | ((state: VolumeSliderRoot.State) => string)">
+  CSS class name or a function that receives state and returns a class name.
+</ParamField>
+
+<ParamField path="style" type="CSSProperties | ((state: VolumeSliderRoot.State) => CSSProperties)">
+  Inline style or a function that receives state and returns a style object.
+</ParamField>
+
+<ParamField path="render" type="ReactElement | ((props: HTMLProps, state: VolumeSliderRoot.State) => ReactElement | null)">
+  Custom render prop for the root element.
+</ParamField>
+
+## State Data Attributes
+
+| Attribute | Value / Description |
+|-----------|---------------------|
+| `data-pointing` | Present while the pointer is hovering over the slider. |
+| `data-interactive` | Present when the user is interacting (pointing or dragging). |
+| `data-dragging` | Present while the thumb is being dragged. |
+| `data-orientation` | `"horizontal"` \| `"vertical"` — reflects the `orientation` prop. |
+
+### CSS Styling Example
+
+```css
+.volume-slider {
+  position: relative;
+  height: 4px;
+}
+
+.slider-fill {
+  width: calc(var(--media-slider-fill) * 1%);
+}
+
+.slider-thumb {
+  left: calc(var(--media-slider-fill) * 1%);
+}
+```
+
+## Accessibility
+
+Renders with `role="slider"` and automatic `aria-label` of `"Volume"`. Keyboard controls:
+
+- `Arrow Left` / `Arrow Right`: step by `step` amount
+- `Page Up` / `Page Down`: step by `largeStep` amount
+- `Home`: set volume to 0
+- `End`: set volume to maximum

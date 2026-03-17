@@ -1,0 +1,94 @@
+---
+title: "PlaybackRateButton"
+description: "A button that cycles through playback speed rates."
+---
+
+`PlaybackRateButton` cycles through playback rates on click. The default rate list is `[1, 1.2, 1.5, 1.7, 2]`. After the last rate, it wraps back to the first. If the current rate isn't in the list (e.g., set programmatically), the button jumps to the next rate greater than the current one.
+
+<Note>
+  Requires the `playbackRate` feature to be registered with the player.
+</Note>
+
+## Import
+
+```tsx
+import { PlaybackRateButton } from '@videojs/react';
+```
+
+## Basic Usage
+
+```tsx
+import { PlaybackRateButton } from '@videojs/react';
+
+function PlayerControls() {
+  return <PlaybackRateButton />;
+}
+```
+
+### Custom Render with Rate Display
+
+```tsx
+import { PlaybackRateButton } from '@videojs/react';
+
+function PlayerControls() {
+  return (
+    <PlaybackRateButton
+      render={(props, state) => (
+        <button {...props}>
+          {state.rate}&times;
+        </button>
+      )}
+    />
+  );
+}
+```
+
+### Custom Rates
+
+```tsx
+import { PlaybackRateButton } from '@videojs/react';
+
+function PlayerControls() {
+  return (
+    <PlaybackRateButton
+      rates={[0.5, 1, 1.5, 2]}
+    />
+  );
+}
+```
+
+## Props
+
+<ParamField path="rates" type="number[]">
+  Custom list of playback rates to cycle through. Defaults to `[1, 1.2, 1.5, 1.7, 2]`.
+</ParamField>
+
+<ParamField path="render" type="ReactElement | ((props: HTMLProps, state: PlaybackRateButton.State) => ReactElement | null)">
+  Custom render prop. Receives the computed HTML props and current state. Use `state.rate` to display the current rate.
+</ParamField>
+
+<ParamField path="label" type="string | ((state: PlaybackRateButton.State) => string)">
+  Override the automatic `aria-label`. By default: `"Playback rate 1.5"` (includes the current rate).
+</ParamField>
+
+<ParamField path="disabled" type="boolean">
+  Disables the button.
+</ParamField>
+
+<ParamField path="className" type="string | ((state: PlaybackRateButton.State) => string)">
+  CSS class name or a function that receives state and returns a class name.
+</ParamField>
+
+<ParamField path="style" type="CSSProperties | ((state: PlaybackRateButton.State) => CSSProperties)">
+  Inline style or a function that receives state and returns a style object.
+</ParamField>
+
+## State Data Attributes
+
+| Attribute | Value / Description |
+|-----------|---------------------|
+| `data-rate` | The current playback rate as a string (e.g., `"1.5"`). |
+
+## Accessibility
+
+Renders a `<button>` element. The `aria-label` is automatically set to `"Playback rate {rate}"` (e.g., `"Playback rate 1.5"`). Override with the `label` prop. Keyboard activation: `Enter` / `Space`.

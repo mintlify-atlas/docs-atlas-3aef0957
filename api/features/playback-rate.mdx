@@ -1,0 +1,97 @@
+---
+title: "playbackRate"
+description: "Playback speed state and actions for the player store"
+---
+
+Controls the playback speed. Required by `PlaybackRateButton`.
+
+## Import
+
+```ts
+import { playbackRate, selectPlaybackRate } from '@videojs/react';
+// or
+import { playbackRate, selectPlaybackRate } from '@videojs/html';
+```
+
+## Usage
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { createPlayer, playbackRate } from '@videojs/react';
+
+    const Player = createPlayer({
+      features: [playbackRate],
+    });
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import { createPlayer, playbackRate } from '@videojs/html';
+
+    const { ProviderMixin, PlayerController, context } = createPlayer({
+      features: [playbackRate],
+    });
+    ```
+  </Tab>
+</Tabs>
+
+## State
+
+<ResponseField name="playbackRate" type="number">
+  Current playback speed. `1` is normal speed, `2` is double speed, `0.5` is half speed.
+</ResponseField>
+
+<ResponseField name="playbackRates" type="readonly number[]">
+  The list of available playback rate options presented to the user.
+</ResponseField>
+
+## Actions
+
+<ResponseField name="setPlaybackRate(rate)" type="(rate: number) => void">
+  Set the playback speed to the given rate.
+</ResponseField>
+
+## Selector
+
+Use `selectPlaybackRate` to subscribe to only the playback rate slice of state. Returns `undefined` if the playbackRate feature is not configured.
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { selectPlaybackRate, usePlayer } from '@videojs/react';
+
+    function RateSelector() {
+      const rate = usePlayer(selectPlaybackRate);
+      if (!rate) return null;
+
+      return (
+        <select
+          value={rate.playbackRate}
+          onChange={(e) => rate.setPlaybackRate(Number(e.target.value))}
+        >
+          {rate.playbackRates.map((r) => (
+            <option key={r} value={r}>{r}x</option>
+          ))}
+        </select>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import { createPlayer, MediaElement, selectPlaybackRate } from '@videojs/html';
+    import { videoFeatures } from '@videojs/html/video';
+
+    const { PlayerController, context } = createPlayer({ features: videoFeatures });
+
+    class RateDisplay extends MediaElement {
+      readonly #rate = new PlayerController(this, context, selectPlaybackRate);
+    }
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+  Required by: `PlaybackRateButton`
+</Note>

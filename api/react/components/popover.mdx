@@ -1,0 +1,141 @@
+---
+title: "Popover"
+description: "Accessible popover wrapper for displaying contextual content anchored to a trigger."
+---
+
+`Popover` is a compound component that displays contextual content anchored to a trigger element. By default it opens on click and closes when clicking outside, pressing `Escape`, or when focus moves away.
+
+## Sub-components
+
+| Component | Description |
+|-----------|-------------|
+| `Popover.Root` | Manages popover state and provides context to child components. |
+| `Popover.Trigger` | The element that toggles the popover open/closed on click. |
+| `Popover.Popup` | The popover popup container with content. |
+| `Popover.Arrow` | Optional decorative arrow pointing to the trigger. |
+
+## Import
+
+```tsx
+import { Popover } from '@videojs/react';
+```
+
+## Basic Usage
+
+```tsx
+import { Popover, PlaybackRateButton } from '@videojs/react';
+
+function PlayerControls() {
+  return (
+    <Popover.Root>
+      <Popover.Trigger render={<PlaybackRateButton />} />
+      <Popover.Popup className="popover-popup">
+        <ul>
+          <li>0.5x</li>
+          <li>1x</li>
+          <li>1.5x</li>
+          <li>2x</li>
+        </ul>
+      </Popover.Popup>
+    </Popover.Root>
+  );
+}
+```
+
+### Open on Hover
+
+```tsx
+import { Popover } from '@videojs/react';
+
+function VolumeControl() {
+  return (
+    <Popover.Root openOnHover delay={200} closeDelay={300}>
+      <Popover.Trigger>
+        <button>Volume</button>
+      </Popover.Trigger>
+      <Popover.Popup className="volume-popup">
+        {/* VolumeSlider */}
+      </Popover.Popup>
+    </Popover.Root>
+  );
+}
+```
+
+## Popover.Root Props
+
+<ParamField path="open" type="boolean">
+  Controlled open state. When provided, the component operates in controlled mode.
+</ParamField>
+
+<ParamField path="defaultOpen" type="boolean">
+  Initial open state for uncontrolled usage. Defaults to `false`.
+</ParamField>
+
+<ParamField path="openOnHover" type="boolean">
+  When `true`, the popover opens on pointer hover instead of click. Defaults to `false`.
+</ParamField>
+
+<ParamField path="delay" type="number">
+  Milliseconds before the popover opens on hover (when `openOnHover` is enabled). Defaults to `0`.
+</ParamField>
+
+<ParamField path="closeDelay" type="number">
+  Milliseconds before the popover closes after the pointer leaves (when `openOnHover` is enabled). Defaults to `0`.
+</ParamField>
+
+<ParamField path="closeOnEscape" type="boolean">
+  Whether pressing `Escape` closes the popover. Defaults to `true`.
+</ParamField>
+
+<ParamField path="closeOnOutsideClick" type="boolean">
+  Whether clicking outside the popover closes it. Defaults to `true`.
+</ParamField>
+
+<ParamField path="onOpenChange" type="(open: boolean, details: PopoverChangeDetails) => void">
+  Called when the open state changes. Fires immediately, before animations complete.
+</ParamField>
+
+<ParamField path="onOpenChangeComplete" type="(open: boolean) => void">
+  Called after open/close animations complete.
+</ParamField>
+
+<ParamField path="children" type="ReactNode">
+  `Popover.Trigger`, `Popover.Popup`, and optionally `Popover.Arrow` elements.
+</ParamField>
+
+## State Data Attributes
+
+These attributes are reflected on the `Popover.Popup` element.
+
+| Attribute | Value / Description |
+|-----------|---------------------|
+| `data-open` | Present when the popover is open. |
+| `data-side` | `"top"` \| `"bottom"` \| `"left"` \| `"right"` — current placement side. |
+| `data-align` | `"start"` \| `"center"` \| `"end"` — current alignment. |
+| `data-starting-style` | Present during the open animation. |
+| `data-ending-style` | Present during the close animation. |
+
+### CSS Styling Example
+
+```css
+.popover-popup {
+  display: none;
+  background: #1a1a1a;
+  border-radius: 8px;
+  padding: 8px;
+  --media-popover-side-offset: 8px;
+}
+
+.popover-popup[data-open] {
+  display: block;
+}
+
+.popover-popup[data-starting-style],
+.popover-popup[data-ending-style] {
+  opacity: 0;
+}
+```
+
+## Accessibility
+
+The trigger receives `aria-expanded` reflecting the open state. When `modal` is set, the popup receives `aria-modal="true"`. Closing via `Escape` is enabled by default and can be disabled with `closeOnEscape={false}`.

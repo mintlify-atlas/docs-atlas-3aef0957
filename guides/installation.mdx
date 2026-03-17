@@ -1,0 +1,118 @@
+---
+title: "Installation"
+description: "Install Video.js v10 and set up your first player using npm, pnpm, yarn, or bun."
+---
+
+<Warning>
+  Video.js v10 is currently in **beta**. The API may evolve based on feedback. See the [Changelog](https://github.com/videojs/v10/blob/main/CHANGELOG.md) for recent updates.
+</Warning>
+
+Video.js v10 ships as two separate packages depending on your environment:
+
+- **`@videojs/react`** — React component library with hooks and typed stores
+- **`@videojs/html`** — Custom elements library for framework-free environments
+
+## Install
+
+<Tabs>
+  <Tab title="React">
+    <CodeGroup>
+
+    ```bash npm
+    npm install @videojs/react
+    ```
+
+    ```bash pnpm
+    pnpm add @videojs/react
+    ```
+
+    ```bash yarn
+    yarn add @videojs/react
+    ```
+
+    ```bash bun
+    bun add @videojs/react
+    ```
+
+    </CodeGroup>
+
+    <Info>
+      `@videojs/react` requires React 16.8 or later as a peer dependency.
+    </Info>
+  </Tab>
+  <Tab title="HTML (custom elements)">
+    <CodeGroup>
+
+    ```bash npm
+    npm install @videojs/html
+    ```
+
+    ```bash pnpm
+    pnpm add @videojs/html
+    ```
+
+    ```bash yarn
+    yarn add @videojs/html
+    ```
+
+    ```bash bun
+    bun add @videojs/html
+    ```
+
+    </CodeGroup>
+  </Tab>
+</Tabs>
+
+## CDN (HTML only)
+
+For HTML environments you can also load `@videojs/html` directly from a CDN without a build step.
+
+```html index.html
+<!-- Custom elements + player logic -->
+<script type="module" src="https://cdn.jsdelivr.net/npm/@videojs/html/cdn/video/player.js"></script>
+
+<!-- Default video skin CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@videojs/html/cdn/video/skin.css" />
+
+<video-player>
+  <video-skin>
+    <video slot="media" src="https://example.com/movie.mp4" controls></video>
+  </video-skin>
+</video-player>
+```
+
+## TypeScript
+
+Both packages are written in TypeScript and ship declaration files. No additional configuration is required — types are included automatically when you install.
+
+```ts
+import { createPlayer } from '@videojs/react';
+import { videoFeatures } from '@videojs/react/video';
+
+// Player is fully typed based on the features you pass
+const Player = createPlayer({ features: videoFeatures });
+```
+
+## Peer dependencies
+
+| Package | Peer dependency |
+|---|---|
+| `@videojs/react` | `react >= 16.8.0` |
+| `@videojs/html` | None |
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="React integration" icon="react" href="/guides/react">
+    Set up a player in a React app with components and hooks.
+  </Card>
+  <Card title="HTML custom elements" icon="code" href="/guides/html">
+    Use Video.js in any HTML page or framework-free project.
+  </Card>
+  <Card title="Media sources" icon="play" href="/guides/media-sources">
+    Add HLS, DASH, and other media sources to your player.
+  </Card>
+  <Card title="Custom features" icon="puzzle" href="/guides/custom-features">
+    Compose and extend the player's feature set.
+  </Card>
+</CardGroup>

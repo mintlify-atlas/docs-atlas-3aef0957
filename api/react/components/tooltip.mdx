@@ -1,0 +1,149 @@
+---
+title: "Tooltip"
+description: "Accessible tooltip wrapper for displaying contextual labels on hover and focus."
+---
+
+`Tooltip` is a compound component that displays a short label anchored to a trigger element. It opens after a configurable delay on hover, or immediately on focus, and closes when the pointer leaves or focus moves away.
+
+## Sub-components
+
+| Component | Description |
+|-----------|-------------|
+| `Tooltip.Provider` | Coordinates open/close timing across a group of tooltips. |
+| `Tooltip.Root` | Manages tooltip state and provides context to child components. |
+| `Tooltip.Trigger` | The element that activates the tooltip on hover or focus. |
+| `Tooltip.Popup` | The tooltip popup container with label content. |
+| `Tooltip.Arrow` | Optional decorative arrow pointing to the trigger. |
+
+## Import
+
+```tsx
+import { Tooltip } from '@videojs/react';
+```
+
+## Basic Usage
+
+```tsx
+import { Tooltip, PlayButton } from '@videojs/react';
+
+function PlayerControls() {
+  return (
+    <Tooltip.Root>
+      <Tooltip.Trigger render={<PlayButton />} />
+      <Tooltip.Popup className="tooltip-popup">
+        Play
+      </Tooltip.Popup>
+    </Tooltip.Root>
+  );
+}
+```
+
+### Grouping Tooltips
+
+Wrap multiple tooltips in `Tooltip.Provider` to share a delay group. Once one tooltip becomes visible, adjacent tooltips open instantly within the `timeout` window, skipping the normal `delay`.
+
+```tsx
+import { Tooltip, PlayButton, MuteButton } from '@videojs/react';
+
+function PlayerControls() {
+  return (
+    <Tooltip.Provider>
+      <Tooltip.Root>
+        <Tooltip.Trigger render={<PlayButton />} />
+        <Tooltip.Popup>Play</Tooltip.Popup>
+      </Tooltip.Root>
+      <Tooltip.Root>
+        <Tooltip.Trigger render={<MuteButton />} />
+        <Tooltip.Popup>Mute</Tooltip.Popup>
+      </Tooltip.Root>
+    </Tooltip.Provider>
+  );
+}
+```
+
+## Tooltip.Root Props
+
+<ParamField path="open" type="boolean">
+  Controlled open state. When provided, the component operates in controlled mode.
+</ParamField>
+
+<ParamField path="defaultOpen" type="boolean">
+  Initial open state for uncontrolled usage. Defaults to `false`.
+</ParamField>
+
+<ParamField path="delay" type="number">
+  Milliseconds before the tooltip opens on hover. Defaults to `600`.
+</ParamField>
+
+<ParamField path="closeDelay" type="number">
+  Milliseconds before the tooltip closes after the pointer leaves. Defaults to `0`.
+</ParamField>
+
+<ParamField path="disabled" type="boolean">
+  Prevents the tooltip from opening.
+</ParamField>
+
+<ParamField path="disableHoverablePopup" type="boolean">
+  When `true`, the tooltip closes immediately when the pointer leaves the trigger (even if the pointer moves into the popup).
+</ParamField>
+
+<ParamField path="onOpenChange" type="(open: boolean, details: TooltipChangeDetails) => void">
+  Called when the open state changes. Fires immediately, before animations complete.
+</ParamField>
+
+<ParamField path="onOpenChangeComplete" type="(open: boolean) => void">
+  Called after open/close animations complete.
+</ParamField>
+
+<ParamField path="children" type="ReactNode">
+  `Tooltip.Trigger`, `Tooltip.Popup`, and optionally `Tooltip.Arrow` elements.
+</ParamField>
+
+## Tooltip.Provider Props
+
+<ParamField path="timeout" type="number">
+  Time window in milliseconds during which adjacent tooltips open instantly after one has been shown. Defaults to `500`.
+</ParamField>
+
+<ParamField path="children" type="ReactNode">
+  `Tooltip.Root` elements to group together.
+</ParamField>
+
+## State Data Attributes
+
+These attributes are reflected on the `Tooltip.Popup` element.
+
+| Attribute | Value / Description |
+|-----------|---------------------|
+| `data-open` | Present when the tooltip is open. |
+| `data-side` | `"top"` \| `"bottom"` \| `"left"` \| `"right"` — current placement side. |
+| `data-align` | `"start"` \| `"center"` \| `"end"` — current alignment. |
+| `data-starting-style` | Present during the open animation. |
+| `data-ending-style` | Present during the close animation. |
+
+### CSS Styling Example
+
+```css
+.tooltip-popup {
+  display: none;
+  background: #000;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  --media-tooltip-side-offset: 8px;
+}
+
+.tooltip-popup[data-open] {
+  display: block;
+}
+
+.tooltip-popup[data-starting-style],
+.tooltip-popup[data-ending-style] {
+  opacity: 0;
+}
+```
+
+## Accessibility
+
+The trigger receives `aria-describedby` pointing to the popup when open. The popup renders with `role="tooltip"` and `popover="manual"`. Tooltips open on focus and close when focus leaves, ensuring keyboard-only users can access the label.

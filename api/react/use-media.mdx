@@ -1,0 +1,123 @@
+---
+title: "useMedia()"
+description: "Hook for accessing the underlying HTMLMediaElement from within a Player.Provider context."
+---
+
+`useMedia` returns the current `HTMLMediaElement` registered with the player, or `null` if no media element has mounted yet. Use it to interact directly with the native media API when you need capabilities that aren't exposed through the store.
+
+Must be called within a `Player.Provider`. The media element becomes available after a `<video>` or `<audio>` component mounts inside the provider tree.
+
+```tsx
+function MyComponent() {
+  const media = Player.useMedia();
+  // media is HTMLVideoElement | HTMLAudioElement | null
+
+  return (
+    <button onClick={() => media?.requestPictureInPicture()}>
+      PiP
+    </button>
+  );
+}
+```
+
+## Parameters
+
+This hook takes no arguments.
+
+## Return value
+
+<ResponseField name="media" type="Media | null">
+  The registered `HTMLMediaElement` (`HTMLVideoElement` or `HTMLAudioElement`), or `null` if no media element has been registered yet.
+
+  The element is available after the media component (such as a `<video>` wrapped with `useMediaRegistration`) mounts inside the provider. It becomes `null` again if the media component unmounts.
+</ResponseField>
+
+## Usage
+
+### Basic usage
+
+```tsx
+import { createPlayer } from '@videojs/react';
+import { videoFeatures } from '@videojs/react/video';
+
+const Player = createPlayer({ features: videoFeatures });
+
+function ScreenshotButton() {
+  const media = Player.useMedia();
+
+  function takeScreenshot() {
+    if (!media) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = media.videoWidth;
+    canvas.height = media.videoHeight;
+    canvas.getContext('2d')?.drawImage(media, 0, 0);
+    // download canvas...
+  }
+
+  return <button onClick={takeScreenshot}>Screenshot</button>;
+}
+
+function App() {
+  return (
+    <Player.Provider>
+      <Player.Container>
+        <video src="video.mp4" />
+        <ScreenshotButton />
+      </Player.Container>
+    </Player.Provider>
+  );
+}
+```
+
+### Guarding against null
+
+The media element is `null` before the `<video>` or `<audio>` component mounts. Always guard against `null` before calling media methods:
+
+```tsx
+function PlayButton() {
+  const media = Player.useMedia();
+
+  // Safe — no-op if media is null
+  return <button onClick={() => media?.play()}>Play</button>;
+}
+```
+
+## Standalone import
+
+Also available as a standalone import from `@videojs/react`. The behavior is identical — no typing difference.
+
+```tsx
+import { useMedia } from '@videojs/react';
+
+function MyComponent() {
+  const media = useMedia();
+  return <button onClick={() => media?.pause()}>Pause</button>;
+}
+```
+
+## Registering a custom media element
+
+To connect a custom `<video>` or `<audio>` element (rather than using a built-in component), use `useMediaRegistration`. This hook returns the setter that `Player.Provider` uses to track the active media element.
+
+```tsx
+import { useMediaRegistration } from '@videojs/react';
+import { useEffect, useRef } from 'react';
+
+function CustomVideo(props) {
+  const ref = useRef(null);
+  const setMedia = useMediaRegistration();
+
+  useEffect(() => {
+    setMedia?.(ref.current);
+    return () => setMedia?.(null);
+  }, [setMedia]);
+
+  return <video ref={ref} {...props} />;
+}
+```
+
+## Rules
+
+- Must be called inside a `Player.Provider`.
+- Returns `null` until a media element is registered inside the provider tree.
+- Re-renders the component when the media element mounts or unmounts.

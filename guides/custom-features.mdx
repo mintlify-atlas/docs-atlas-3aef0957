@@ -1,0 +1,236 @@
+---
+title: "Custom features"
+description: "Compose and extend Video.js v10 feature bundles to build players with exactly the functionality you need."
+---
+
+Features are self-contained units of player functionality. Each one adds state properties and actions to the player. You choose exactly which features your player includes — nothing more, nothing less.
+
+## Feature bundles
+
+A **feature bundle** is an array of features grouped for a specific use case. The preset bundles are the starting point for most players:
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { videoFeatures } from '@videojs/react/video';
+    import { audioFeatures } from '@videojs/react/audio';
+    import { backgroundFeatures } from '@videojs/react/background';
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import { videoFeatures } from '@videojs/html/video';
+    import { audioFeatures } from '@videojs/html/audio';
+    import { backgroundFeatures } from '@videojs/html/background';
+    ```
+  </Tab>
+</Tabs>
+
+## Build a player with individual features
+
+When you need precise control over what the player includes, pass an array of individual features directly to `createPlayer()`:
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { createPlayer, playback, volume, time } from '@videojs/react';
+
+    const Player = createPlayer({
+      features: [playback, volume, time],
+    });
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import { createPlayer, playback, volume, time, MediaElement } from '@videojs/html';
+
+    const { ProviderMixin } = createPlayer({
+      features: [playback, volume, time],
+    });
+
+    class MyPlayer extends ProviderMixin(MediaElement) {
+      static readonly tagName = 'my-player';
+    }
+
+    customElements.define('my-player', MyPlayer);
+    ```
+  </Tab>
+</Tabs>
+
+## Extend a preset's feature bundle
+
+Feature bundles are plain arrays, so you can spread them and append additional features:
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { createPlayer, playback } from '@videojs/react';
+    import { backgroundFeatures, BackgroundVideo, BackgroundVideoSkin } from '@videojs/react/background';
+
+    // Add play/pause to a background video
+    const Player = createPlayer({
+      features: [...backgroundFeatures, playback],
+    });
+
+    function Hero() {
+      return (
+        <Player.Provider>
+          <Player.Container>
+            <BackgroundVideo src="hero.mp4" />
+            <PlayButton
+              render={(props, state) => (
+                <button {...props}>{state.paused ? 'Play' : 'Pause'}</button>
+              )}
+            />
+          </Player.Container>
+        </Player.Provider>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import { createPlayer, playback, MediaElement } from '@videojs/html';
+    import { backgroundFeatures } from '@videojs/html/background';
+
+    const { ProviderMixin } = createPlayer({
+      features: [...backgroundFeatures, playback],
+    });
+
+    class MyPlayer extends ProviderMixin(MediaElement) {
+      static readonly tagName = 'my-player';
+    }
+
+    customElements.define('my-player', MyPlayer);
+    ```
+
+    ```html
+    <my-player>
+      <media-container>
+        <background-video slot="media" src="hero.mp4"></background-video>
+        <media-play-button>Play / Pause</media-play-button>
+      </media-container>
+    </my-player>
+    ```
+  </Tab>
+</Tabs>
+
+## Check feature availability
+
+Some features — volume, fullscreen, and picture-in-picture — expose an `*Availability` property because platform support varies. For example, iOS Safari does not allow programmatic volume control.
+
+| Value | Meaning |
+|---|---|
+| `'available'` | Ready to use |
+| `'unavailable'` | Could work but not ready yet |
+| `'unsupported'` | Platform can never support this |
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { Player } from './player';
+
+    function PiPControl() {
+      const availability = Player.usePlayer((s) => s.pipAvailability);
+
+      if (availability === 'unsupported') return null;
+
+      return (
+        <PiPButton
+          render={(props) => <button {...props}>PiP</button>}
+        />
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```css
+    /* Hide unsupported controls via CSS */
+    media-pip-button[data-availability="unsupported"] {
+      display: none;
+    }
+    media-fullscreen-button[data-availability="unsupported"] {
+      display: none;
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Feature-scoped selectors
+
+Each feature exports a pre-built selector that returns just that feature's state and actions. Use these to avoid subscribing to more state than you need.
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { selectPlayback, selectVolume } from '@videojs/react';
+    import { Player } from './player';
+
+    function VolumeControl() {
+      const volume = Player.usePlayer(selectVolume);
+      return (
+        <button onClick={() => volume?.setMuted(!volume.muted)}>
+          {volume?.muted ? 'Unmute' : 'Mute'}
+        </button>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import { PlayerController } from '@videojs/html';
+    import { selectPlayback } from '@videojs/html';
+
+    class PlayToggle extends HTMLElement {
+      readonly #playback = new PlayerController(this, context, selectPlayback);
+
+      connectedCallback() {
+        this.addEventListener('click', () => {
+          const state = this.#playback.value;
+          if (state?.paused) {
+            state.play();
+          } else {
+            state?.pause();
+          }
+        });
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Custom state selectors
+
+Use `createSelector()` from `@videojs/react` (or `@videojs/store`) to build your own memoized selectors:
+
+```tsx
+import { createSelector, usePlayer } from '@videojs/react';
+import { Player } from './player';
+
+// Derived selector: combine two pieces of state
+const selectPlaybackSummary = createSelector(
+  (s) => s.paused,
+  (s) => s.currentTime,
+  (paused, currentTime) => ({ paused, currentTime })
+);
+
+function PlaybackSummary() {
+  const summary = Player.usePlayer(selectPlaybackSummary);
+  return (
+    <span>
+      {summary.paused ? 'Paused' : 'Playing'} at {summary.currentTime.toFixed(1)}s
+    </span>
+  );
+}
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Custom skins" icon="palette" href="/guides/custom-skins">
+    Build or eject a skin to match your design.
+  </Card>
+  <Card title="Media sources" icon="play" href="/guides/media-sources">
+    Swap in HLS, DASH, and other media providers.
+  </Card>
+</CardGroup>

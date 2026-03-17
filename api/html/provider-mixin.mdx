@@ -1,0 +1,94 @@
+---
+title: "ProviderMixin"
+description: "Mixin that creates and provides the player store to descendant elements via context."
+---
+
+`ProviderMixin` is a mixin factory that adds store ownership and context provision to a custom element class. The resulting element creates the player store and publishes it to descendant elements so that [`PlayerController`](/api/html/player-controller) and [`ContainerMixin`](/api/html/container-mixin) instances can resolve it automatically.
+
+`ProviderMixin` is returned by [`createPlayer`](/api/html/create-player) pre-bound to the player context and store factory.
+
+## Signature
+
+```ts
+type ProviderMixin<Store extends PlayerStore> = <Class extends MediaElementConstructor>(
+  BaseClass: Class
+) => Class & PlayerProviderConstructor<Store>;
+```
+
+## Usage
+
+### Creating a provider element
+
+```ts
+import { createPlayer, MediaElement } from '@videojs/html';
+import { videoFeatures } from '@videojs/html/video';
+
+const { ProviderMixin } = createPlayer({ features: videoFeatures });
+
+class VideoPlayer extends ProviderMixin(MediaElement) {
+  static readonly tagName = 'video-player';
+}
+
+customElements.define(VideoPlayer.tagName, VideoPlayer);
+```
+
+Any element inside `<video-player>` that uses a `PlayerController` or `ContainerMixin` will automatically receive the store.
+
+### Split provider and container
+
+Use `ProviderMixin` on its own when the store owner is a different element from the one containing the media:
+
+```ts
+import { createPlayer, MediaElement } from '@videojs/html';
+import { videoFeatures } from '@videojs/html/video';
+
+const { ProviderMixin, ContainerMixin } = createPlayer({ features: videoFeatures });
+
+// Layout shell: owns the store
+class AppShell extends ProviderMixin(MediaElement) {}
+customElements.define('app-shell', AppShell);
+
+// Content region: discovers and attaches media
+class VideoRegion extends ContainerMixin(MediaElement) {}
+customElements.define('video-region', VideoRegion);
+```
+
+### Composed element
+
+Compose both mixins when a single element should own the store and host the media:
+
+```ts
+import { createPlayer, MediaElement } from '@videojs/html';
+import { videoFeatures } from '@videojs/html/video';
+
+const { ProviderMixin, ContainerMixin } = createPlayer({ features: videoFeatures });
+
+class VideoPlayer extends ProviderMixin(ContainerMixin(MediaElement)) {}
+customElements.define('video-player', VideoPlayer);
+```
+
+## Properties
+
+<ResponseField name="store" type="Store">
+  The player store instance. Created lazily on first access. After `destroyCallback` is called, a new store is created on next access.
+</ResponseField>
+
+## Store lifecycle
+
+The store is initialized with the factory from `createPlayer` and published to context on `connectedCallback`. On `destroyCallback`, the store is destroyed and the reference is cleared.
+
+```
+Element connected  →  store.create()  →  context.provide(store)
+Element destroyed  →  store.destroy()  →  context cleared
+```
+
+If the element is reconnected after being destroyed, `store` is re-created lazily on the next access.
+
+## Lifecycle
+
+- `connectedCallback` — publishes the store to the element's context so descendants can consume it.
+- `destroyCallback` — calls `store.destroy()` and clears the store reference.
+
+<Note>
+  The store is created eagerly at field initialization time (not lazily on `connectedCallback`) so that imperative access to `this.store` works before the element is inserted into the DOM. If the store was destroyed by a previous `destroyCallback`, it is re-created lazily on the next `store` getter access.
+</Note>

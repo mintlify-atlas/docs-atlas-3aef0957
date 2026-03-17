@@ -1,0 +1,131 @@
+---
+title: "useSnapshot()"
+description: "Subscribe to a State container and return its current value."
+---
+
+`useSnapshot` subscribes to a `State` container and returns its current value,
+re-rendering the component when the value changes. It is built on
+[`useSelector`](/api/react/use-selector) and uses `shallowEqual` by default.
+
+## Import
+
+```ts
+import { useSnapshot } from '@videojs/store/react';
+// Also re-exported from @videojs/react
+```
+
+## Overloads
+
+### Without selector
+
+Returns the full state object. Re-renders on every state change.
+
+```ts
+function useSnapshot<T extends object>(state: State<T>): T
+```
+
+### With selector
+
+Returns a derived value. Re-renders only when the derived value changes according
+to `isEqual` (defaults to `shallowEqual`).
+
+```ts
+function useSnapshot<T extends object, R>(
+  state: State<T>,
+  selector: (state: T) => R,
+  isEqual?: (a: R, b: R) => boolean
+): R
+```
+
+## Parameters
+
+<ParamField path="state" type="State<T>" required>
+  The `State` container to subscribe to. `State` is a reactive primitive that
+  holds an object value and notifies subscribers on change.
+</ParamField>
+
+<ParamField path="selector" type="(state: T) => R">
+  Optional. Derives a value from the current state. When provided, the component
+  only re-renders when the returned value changes.
+</ParamField>
+
+<ParamField path="isEqual" type="(a: R, b: R) => boolean">
+  Optional. Custom equality comparator used to decide whether the derived value
+  has changed. Defaults to `shallowEqual`.
+</ParamField>
+
+## Return value
+
+<ResponseField name="value" type="T | R">
+  When called without a selector, the full current state object `T`. When called
+  with a selector, the derived value `R`.
+</ResponseField>
+
+## Usage
+
+### Full state subscription
+
+```tsx title="CountDisplay.tsx"
+import { useSnapshot } from '@videojs/store/react';
+
+function CountDisplay({ state }) {
+  const value = useSnapshot(state);
+  return <span>{value.count}</span>;
+}
+```
+
+### Derived value with selector
+
+Use a selector to subscribe to only the part of state you need. The component
+will not re-render when unrelated parts of the state change.
+
+```tsx title="Count.tsx"
+import { useSnapshot } from '@videojs/store/react';
+
+function Count({ state }) {
+  const count = useSnapshot(state, (s) => s.count);
+  return <span>{count}</span>;
+}
+```
+
+### Custom equality comparator
+
+Pass a custom `isEqual` function when selector returns a derived object and you
+need control over when re-renders occur.
+
+```tsx title="TimeDisplay.tsx"
+import { useSnapshot, shallowEqual } from '@videojs/store/react';
+
+function TimeDisplay({ state }) {
+  const time = useSnapshot(
+    state,
+    (s) => ({ current: s.currentTime, duration: s.duration }),
+    shallowEqual // explicit, though shallowEqual is the default
+  );
+
+  return (
+    <span>
+      {time.current} / {time.duration}
+    </span>
+  );
+}
+```
+
+## State containers vs. stores
+
+A `State` container is the low-level reactive primitive in `@videojs/store`. Stores are built on top of `State` containers and add features, actions, and lifecycle management.
+
+| Hook | Input | Subscribes to |
+| --- | --- | --- |
+| `useSnapshot` | `State<T>` | Raw state container |
+| [`useStore`](/api/react/use-store) | Store instance | Store-backed state with features |
+
+Use `useSnapshot` when working with standalone `State` containers outside the
+player store system — for example, custom state in component libraries. For
+player state, use [`usePlayer`](/api/react/use-player) or
+[`useStore`](/api/react/use-store).
+
+## HTML equivalent
+
+The HTML equivalent is [`SnapshotController`](/api/html/snapshot-controller),
+which provides the same subscription behavior for DOM-based environments.

@@ -1,0 +1,86 @@
+---
+title: "controls"
+description: "User activity and controls visibility state for the player store"
+---
+
+Read-only — tracks user activity to determine when to show or hide the player controls.
+
+## Import
+
+```ts
+import { controls, selectControls } from '@videojs/react';
+// or
+import { controls, selectControls } from '@videojs/html';
+```
+
+## Usage
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { createPlayer, controls } from '@videojs/react';
+
+    const Player = createPlayer({
+      features: [controls],
+    });
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import { createPlayer, controls } from '@videojs/html';
+
+    const { ProviderMixin, PlayerController, context } = createPlayer({
+      features: [controls],
+    });
+    ```
+  </Tab>
+</Tabs>
+
+## State
+
+<ResponseField name="userActive" type="boolean">
+  Whether the user has recently interacted with the player (mouse movement, touch, keyboard).
+</ResponseField>
+
+<ResponseField name="controlsVisible" type="boolean">
+  Whether the controls should be visible. `true` when the user is active or when playback is paused.
+</ResponseField>
+
+## Selector
+
+Use `selectControls` to subscribe to only the controls slice of state. Returns `undefined` if the controls feature is not configured.
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { selectControls, usePlayer } from '@videojs/react';
+
+    function ControlsOverlay({ children }: { children: React.ReactNode }) {
+      const controls = usePlayer(selectControls);
+      if (!controls) return null;
+
+      return (
+        <div style={{ opacity: controls.controlsVisible ? 1 : 0 }}>
+          {children}
+        </div>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import { createPlayer, MediaElement, selectControls } from '@videojs/html';
+    import { videoFeatures } from '@videojs/html/video';
+
+    const { PlayerController, context } = createPlayer({ features: videoFeatures });
+
+    class ControlsOverlay extends MediaElement {
+      readonly #controls = new PlayerController(this, context, selectControls);
+    }
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+  This feature is read-only. Controls visibility is derived from user activity and playback state — there are no actions to call directly.
+</Note>

@@ -1,0 +1,101 @@
+---
+title: "ContainerMixin"
+description: "Mixin that consumes player context and auto-attaches media elements found within the element."
+---
+
+`ContainerMixin` is a mixin factory that adds media discovery and auto-attachment to a custom element class. The resulting element consumes the player store from context and uses a `MutationObserver` to watch for `<video>` and `<audio>` descendants, calling `store.attach()` whenever the media target changes.
+
+`ContainerMixin` is returned by [`createPlayer`](/api/html/create-player) pre-bound to the player context.
+
+## Signature
+
+```ts
+type ContainerMixin<Store extends PlayerStore> = <Class extends MediaElementConstructor>(
+  BaseClass: Class
+) => Class & PlayerConsumerConstructor<Store>;
+```
+
+## Usage
+
+### Creating a container element
+
+```ts
+import { createPlayer, MediaElement } from '@videojs/html';
+import { videoFeatures } from '@videojs/html/video';
+
+const { ContainerMixin } = createPlayer({ features: videoFeatures });
+
+class VideoRegion extends ContainerMixin(MediaElement) {
+  static readonly tagName = 'video-region';
+}
+
+customElements.define(VideoRegion.tagName, VideoRegion);
+```
+
+```html title="index.html"
+<video-player>
+  <video-region>
+    <video src="/video.mp4"></video>
+  </video-region>
+</video-player>
+```
+
+The `<video-region>` element automatically discovers the `<video>` child and attaches it to the store owned by the nearest `<video-player>` provider above it in the DOM tree.
+
+### Split provider and container
+
+The most common pattern is to have the store owner (`ProviderMixin`) at a higher level in the tree and one or more container elements deeper:
+
+```ts
+import { createPlayer, MediaElement } from '@videojs/html';
+import { videoFeatures } from '@videojs/html/video';
+
+const { ProviderMixin, ContainerMixin } = createPlayer({ features: videoFeatures });
+
+// Layout shell: owns the store
+class AppShell extends ProviderMixin(MediaElement) {}
+customElements.define('app-shell', AppShell);
+
+// Content region: discovers and attaches media
+class MediaRegion extends ContainerMixin(MediaElement) {}
+customElements.define('media-region', MediaRegion);
+```
+
+### Composed element
+
+Apply both mixins to a single element when the store owner and media container should be the same node:
+
+```ts
+import { createPlayer, MediaElement } from '@videojs/html';
+import { videoFeatures } from '@videojs/html/video';
+
+const { ProviderMixin, ContainerMixin } = createPlayer({ features: videoFeatures });
+
+class VideoPlayer extends ProviderMixin(ContainerMixin(MediaElement)) {}
+customElements.define('video-player', VideoPlayer);
+```
+
+## Properties
+
+<ResponseField name="store" type="Store | null">
+  The resolved player store, or `null` if the element is not connected to a provider. Updated automatically when the context value changes.
+</ResponseField>
+
+## Media discovery
+
+On `connectedCallback`, `ContainerMixin` sets up a `MutationObserver` on its subtree. When a `<video>` or `<audio>` element is added or removed, it calls `store.attach({ media, container })` to update the store's media target. The observer is torn down on `disconnectedCallback`.
+
+Media discovery checks, in order:
+
+1. A direct `<video>` or `<audio>` child element.
+2. A custom element whose tag name ends in `-video` or `-audio`.
+3. An element assigned to a `<slot name="media">` slot.
+
+<Note>
+  Custom media elements (tag names ending in `-video` or `-audio`) are upgraded via `customElements.upgrade()` before attachment to ensure they are fully initialized.
+</Note>
+
+## Lifecycle
+
+- `connectedCallback` — starts the `MutationObserver`, listens for `slotchange` events, and calls `store.attach()` with the current media element if one is found.
+- `disconnectedCallback` — stops the observer, removes the `slotchange` listener, and calls the attachment cleanup function.

@@ -1,0 +1,106 @@
+---
+title: "PlayButton"
+description: "Accessible play/pause/replay button that toggles playback state."
+---
+
+`PlayButton` is a three-state button that toggles between **play**, **pause**, and **replay**. When media reaches the end, clicking it restarts playback from the beginning.
+
+<Note>
+  Requires the `playback` feature to be registered with the player.
+</Note>
+
+## Import
+
+```tsx
+import { PlayButton } from '@videojs/react';
+```
+
+## Basic Usage
+
+```tsx
+import { PlayButton } from '@videojs/react';
+
+function PlayerControls() {
+  return <PlayButton />;
+}
+```
+
+### Custom Render
+
+Use the `render` prop to fully customize the button element while keeping all accessibility and state wiring:
+
+```tsx
+import { PlayIcon, PauseIcon, ReplayIcon } from './icons';
+import { PlayButton } from '@videojs/react';
+
+function PlayerControls() {
+  return (
+    <PlayButton
+      render={(props, state) => (
+        <button {...props}>
+          {state.ended ? (
+            <ReplayIcon />
+          ) : state.paused ? (
+            <PlayIcon />
+          ) : (
+            <PauseIcon />
+          )}
+        </button>
+      )}
+    />
+  );
+}
+```
+
+## Props
+
+<ParamField path="render" type="ReactElement | ((props: HTMLProps, state: PlayButton.State) => ReactElement | null)">
+  Custom render prop. Receives the computed HTML props and current state. Use this to render a custom button element or icon set.
+</ParamField>
+
+<ParamField path="label" type="string | ((state: PlayButton.State) => string)">
+  Override the automatic `aria-label`. By default the label is `"Play"`, `"Pause"`, or `"Replay"` depending on state.
+</ParamField>
+
+<ParamField path="disabled" type="boolean">
+  Disables the button.
+</ParamField>
+
+<ParamField path="className" type="string | ((state: PlayButton.State) => string)">
+  CSS class name or a function that receives state and returns a class name.
+</ParamField>
+
+<ParamField path="style" type="CSSProperties | ((state: PlayButton.State) => CSSProperties)">
+  Inline style or a function that receives state and returns a style object.
+</ParamField>
+
+## State Data Attributes
+
+These attributes are reflected on the rendered `<button>` element and can be used for CSS-based state styling.
+
+| Attribute | Description |
+|-----------|-------------|
+| `data-paused` | Present when media is paused. |
+| `data-ended` | Present when media has ended. |
+| `data-started` | Present after the first play. Remains until a new source is loaded. |
+| `data-waiting` | Present when media is waiting/buffering. |
+
+### CSS Styling Example
+
+```css
+/* Paused (but not ended) */
+.play-button[data-paused]:not([data-ended]) .play-icon { display: inline; }
+
+/* Playing */
+.play-button:not([data-paused]) .pause-icon { display: inline; }
+
+/* Ended */
+.play-button[data-ended] .replay-icon { display: inline; }
+
+/* Hide button before first play */
+.play-button:not([data-started]) { display: none; }
+```
+
+## Accessibility
+
+Renders a `<button>` element. The `aria-label` updates automatically: `"Play"`, `"Pause"`, or `"Replay"`. Keyboard activation: `Enter` / `Space`.

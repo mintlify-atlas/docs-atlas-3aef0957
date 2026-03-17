@@ -1,0 +1,137 @@
+---
+title: "TimeSlider"
+description: "Scrub bar slider for seeking through media playback time."
+---
+
+`TimeSlider` is a compound slider component that displays and controls the current playback position. Dragging the thumb seeks the media. The fill level reflects `currentTime / duration` as a percentage, and the buffer indicator shows how much media has been buffered.
+
+## Sub-components
+
+All `Slider.*` sub-components are available inside `TimeSlider` via the shared slider context.
+
+| Component | Description |
+|-----------|-------------|
+| `TimeSlider.Root` | Root slider element. Manages seek state and keyboard controls. |
+
+Use `Slider.Track`, `Slider.Fill`, `Slider.Thumb`, `Slider.Buffer`, `Slider.Preview`, and `Slider.Value` inside `TimeSlider.Root` for full DOM control.
+
+<Note>
+  Requires the `time` feature to be registered with the player.
+</Note>
+
+## Import
+
+```tsx
+import { TimeSlider, Slider } from '@videojs/react';
+```
+
+## Basic Usage
+
+```tsx
+import { TimeSlider, Slider } from '@videojs/react';
+
+function PlayerControls() {
+  return (
+    <TimeSlider.Root className="time-slider">
+      <Slider.Track className="slider-track">
+        <Slider.Buffer className="slider-buffer" />
+        <Slider.Fill className="slider-fill" />
+      </Slider.Track>
+      <Slider.Thumb className="slider-thumb" />
+      <Slider.Preview className="slider-preview">
+        <Slider.Value type="pointer" className="slider-value" />
+      </Slider.Preview>
+    </TimeSlider.Root>
+  );
+}
+```
+
+## TimeSlider.Root Props
+
+<ParamField path="label" type="string">
+  Override the default `aria-label` of `"Seek"`. Used by screen readers to identify the slider.
+</ParamField>
+
+<ParamField path="step" type="number">
+  Step size in seconds for arrow key navigation. Defaults to `5`.
+</ParamField>
+
+<ParamField path="largeStep" type="number">
+  Large step size in seconds for `Page Up` / `Page Down` key navigation. Defaults to `10`.
+</ParamField>
+
+<ParamField path="commitThrottle" type="number">
+  Throttle duration in milliseconds for seek commits during drag. Defaults to `100`.
+</ParamField>
+
+<ParamField path="orientation" type='"horizontal" | "vertical"'>
+  Slider orientation. Defaults to `"horizontal"`.
+</ParamField>
+
+<ParamField path="disabled" type="boolean">
+  Disables the slider.
+</ParamField>
+
+<ParamField path="thumbAlignment" type="string">
+  Controls how the thumb aligns relative to the track at min/max positions.
+</ParamField>
+
+<ParamField path="onDragStart" type="() => void">
+  Called when the user begins dragging the slider thumb.
+</ParamField>
+
+<ParamField path="onDragEnd" type="() => void">
+  Called when the user releases the slider thumb after dragging.
+</ParamField>
+
+<ParamField path="className" type="string | ((state: TimeSliderRoot.State) => string)">
+  CSS class name or a function that receives state and returns a class name.
+</ParamField>
+
+<ParamField path="style" type="CSSProperties | ((state: TimeSliderRoot.State) => CSSProperties)">
+  Inline style or a function that receives state and returns a style object.
+</ParamField>
+
+<ParamField path="render" type="ReactElement | ((props: HTMLProps, state: TimeSliderRoot.State) => ReactElement | null)">
+  Custom render prop for the root element.
+</ParamField>
+
+## State Data Attributes
+
+| Attribute | Value / Description |
+|-----------|---------------------|
+| `data-seeking` | Present while the user is actively seeking via drag. |
+| `data-pointing` | Present while the pointer is hovering over the slider. |
+| `data-interactive` | Present when the user is interacting (pointing or dragging). |
+| `data-dragging` | Present while the thumb is being dragged. |
+| `data-orientation` | `"horizontal"` \| `"vertical"` — reflects the `orientation` prop. |
+
+### CSS Styling Example
+
+```css
+.time-slider {
+  position: relative;
+  height: 4px;
+}
+
+.slider-fill {
+  width: var(--media-slider-fill);
+}
+
+.slider-thumb {
+  left: var(--media-slider-fill);
+}
+
+.time-slider[data-seeking] {
+  opacity: 0.8;
+}
+```
+
+## Accessibility
+
+Renders with `role="slider"` and automatic `aria-label` of `"Seek"`. Keyboard controls:
+
+- `Arrow Left` / `Arrow Right`: step by `step` seconds
+- `Page Up` / `Page Down`: step by `largeStep` seconds
+- `Home`: seek to start
+- `End`: seek to end

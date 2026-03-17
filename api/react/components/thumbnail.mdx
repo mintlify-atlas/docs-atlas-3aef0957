@@ -1,0 +1,120 @@
+---
+title: "Thumbnail"
+description: "Time-based thumbnail preview component for timeline scrubbing and hover previews."
+---
+
+`Thumbnail` resolves and displays a thumbnail image for a given `time` position. It supports three source formats: VTT text tracks, JSON arrays, and JSON sprite arrays.
+
+## Import
+
+```tsx
+import { Thumbnail } from '@videojs/react';
+```
+
+## Basic Usage
+
+### Text Track (VTT)
+
+Add a `<track>` with `kind="metadata"` and `label="thumbnails"` to your video element. `Thumbnail` reads the cues automatically via the player store.
+
+```tsx
+import { Thumbnail } from '@videojs/react';
+
+// Inside your player setup:
+<Video src="video.mp4">
+  <track
+    kind="metadata"
+    label="thumbnails"
+    src="https://example.com/storyboard.vtt"
+    default
+  />
+</Video>
+
+// Render the thumbnail at a specific time:
+<Thumbnail time={12} className="thumbnail-preview" />
+```
+
+### JSON Thumbnails
+
+Pass a pre-parsed array of thumbnail images directly. This works without `Player.Provider`.
+
+```tsx
+import { Thumbnail } from '@videojs/react';
+
+const thumbnails = [
+  { url: '/thumb-0.jpg', startTime: 0, endTime: 10 },
+  { url: '/thumb-10.jpg', startTime: 10, endTime: 20 },
+];
+
+function HoverPreview({ hoverTime }: { hoverTime: number }) {
+  return (
+    <Thumbnail
+      time={hoverTime}
+      thumbnails={thumbnails}
+      className="hover-preview"
+    />
+  );
+}
+```
+
+## Props
+
+<ParamField path="time" type="number">
+  The media time (in seconds) to resolve a thumbnail for. Defaults to `0`.
+</ParamField>
+
+<ParamField path="thumbnails" type="ThumbnailImage[]">
+  Pre-parsed thumbnail images. When provided, bypasses automatic `<track>` detection. Each item is `{ url, startTime, endTime? }` or `{ url, startTime, endTime?, width, height, coords }` for sprites.
+</ParamField>
+
+<ParamField path="crossOrigin" type="string">
+  CORS attribute passed to the underlying `<img>` element.
+</ParamField>
+
+<ParamField path="loading" type='"eager" | "lazy"'>
+  Loading strategy passed to the underlying `<img>` element.
+</ParamField>
+
+<ParamField path="fetchPriority" type='"high" | "low" | "auto"'>
+  Fetch priority hint passed to the underlying `<img>` element.
+</ParamField>
+
+<ParamField path="className" type="string | ((state: Thumbnail.State) => string)">
+  CSS class name or a function that receives state and returns a class name.
+</ParamField>
+
+<ParamField path="style" type="CSSProperties | ((state: Thumbnail.State) => CSSProperties)">
+  Inline style or a function that receives state and returns a style object.
+</ParamField>
+
+<ParamField path="render" type="ReactElement | ((props: HTMLProps, state: Thumbnail.State) => ReactElement | null)">
+  Custom render prop for full element control.
+</ParamField>
+
+## State Data Attributes
+
+| Attribute | Description |
+|-----------|-------------|
+| `data-hidden` | Present when no thumbnail is available for the given time. |
+| `data-loading` | Present while the thumbnail image is loading. |
+| `data-error` | Present if the thumbnail image failed to load. |
+
+### CSS Styling Example
+
+```css
+.thumbnail-preview[data-hidden] {
+  display: none;
+}
+
+.thumbnail-preview[data-loading] {
+  opacity: 0.6;
+}
+
+.thumbnail-preview[data-error] {
+  outline: 1px solid red;
+}
+```
+
+## Accessibility
+
+`Thumbnail` is decorative by default (`aria-hidden="true"`). It is intended for visual preview UX and not primary accessible content.

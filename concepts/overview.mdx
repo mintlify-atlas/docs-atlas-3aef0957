@@ -1,0 +1,189 @@
+---
+title: "Overview"
+description: "How Video.js players are structured — state, UI, and media."
+---
+
+Video.js v10 is built around a three-part architecture that separates concerns and maximizes flexibility. Each part is designed to work independently or together, allowing you to use as much or as little of Video.js as you need.
+
+## 1. State management
+
+<Tabs>
+  <Tab title="React">
+    State is handled by a `Player.Provider`, which creates a central state store that all components can access. When you wrap your player in a `Player.Provider`, the components automatically connect to the state.
+
+    ```tsx
+    {/* All components inside automatically connect to state */}
+    <Player.Provider>
+      <VideoSkin>
+        <Video src="video.mp4" />
+      </VideoSkin>
+    </Player.Provider>
+    ```
+
+    You can access state and actions from anywhere within the provider with the [`usePlayer` hook](/concepts/features#access-features-in-components).
+  </Tab>
+  <Tab title="HTML">
+    State is handled by a `video-player` element, which creates a central state store that all components can access. Child components automatically connect to the state of the `video-player` element.
+
+    ```html
+    <!-- All components inside automatically connect to state -->
+    <video-player>
+      <video-skin>
+        <video slot="media" src="video.mp4"></video>
+      </video-skin>
+    </video-player>
+    ```
+
+    You can access state and actions from anywhere within `<video-player>` with `PlayerController`.
+  </Tab>
+</Tabs>
+
+## 2. User interface
+
+Use a prebuilt **skin** or build your own from the individual **UI components**.
+
+### Skins
+
+Skins are complete, pre-designed player UIs that package components and styles together:
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    <Player.Provider>
+      <VideoSkin>
+        <Video src="video.mp4" />
+      </VideoSkin>
+    </Player.Provider>
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```html
+    <video-player>
+      <video-skin>
+        <video slot="media" src="video.mp4"></video>
+      </video-skin>
+    </video-player>
+    ```
+  </Tab>
+</Tabs>
+
+See [Skins](/concepts/skins) to learn more.
+
+### UI components
+
+For more control than skins offer, you can build your own UI from individual components:
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    <Player.Provider>
+      <Player.Container>
+        <Video src="video.mp4" />
+        <MediaControls>
+          <PlayButton />
+          {/* ... */}
+        </MediaControls>
+      </Player.Container>
+    </Player.Provider>
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```html
+    <video-player>
+      <media-container>
+        <video slot="media" src="video.mp4"></video>
+        <media-controls>
+          <media-play-button></media-play-button>
+          <!-- ... -->
+        </media-controls>
+      </media-container>
+    </video-player>
+    ```
+  </Tab>
+</Tabs>
+
+<Tip>
+  To get started with UI components, consider ejecting a skin and using its pre-styled components as a foundation.
+</Tip>
+
+See [UI components](/concepts/ui-components) to learn more.
+
+## 3. Media
+
+Media components display your media. They are essentially players with no UI — they handle video and audio rendering and expose a consistent API.
+
+Media components can be format-specific (HLS, DASH), service-specific (YouTube, Vimeo, Mux), or use-case-specific (background video).
+
+<Note>
+  DASH, YouTube, Vimeo, Mux, and more media elements are currently under development.
+</Note>
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    <Player.Provider>
+      <VideoSkin>
+        <HlsVideo src="https://stream.mux.com/BV3YZtogl89mg9VcNBhhnHm02Y34zI1nlMuMQfAbl3dM.m3u8" />
+      </VideoSkin>
+    </Player.Provider>
+    ```
+  </Tab>
+  <Tab title="HTML">
+    Media elements are detected via a `slot="media"` attribute. Always include it on your `<video>`, `<audio>`, or custom media element.
+
+    ```html
+    <video-player>
+      <video-skin>
+        <hls-video slot="media" src="https://stream.mux.com/BV3YZtogl89mg9VcNBhhnHm02Y34zI1nlMuMQfAbl3dM.m3u8"></hls-video>
+      </video-skin>
+    </video-player>
+    ```
+  </Tab>
+</Tabs>
+
+## Presets
+
+**Presets** preconfigure the three parts above for a specific use case.
+
+The default presets are `/video` and `/audio`, covering the baseline controls you'd expect from the HTML `<video>` and `<audio>` tags.
+
+Beyond the defaults, presets target more specific use cases. For example, `/background` includes a media element with autoplay, mute, and loop built in, a skin with no controls, and just the features needed to power it:
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { createPlayer } from '@videojs/react';
+    import { backgroundFeatures, BackgroundVideo, BackgroundVideoSkin } from '@videojs/react/background';
+
+    const Player = createPlayer({ features: backgroundFeatures });
+
+    function Hero() {
+      return (
+        <Player.Provider>
+          <BackgroundVideoSkin>
+            <BackgroundVideo src="hero.mp4" />
+          </BackgroundVideoSkin>
+        </Player.Provider>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```html
+    <script type="module">
+      import '@videojs/html/background/player';
+      import '@videojs/html/background/video';
+      import '@videojs/html/background/skin';
+      import '@videojs/html/background/skin.css';
+    </script>
+
+    <background-video-player>
+      <background-video-skin>
+        <background-video slot="media" src="hero.mp4"></background-video>
+      </background-video-skin>
+    </background-video-player>
+    ```
+  </Tab>
+</Tabs>
+
+See [Presets](/concepts/presets) to learn more.

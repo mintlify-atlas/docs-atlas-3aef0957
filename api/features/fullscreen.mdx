@@ -1,0 +1,101 @@
+---
+title: "fullscreen"
+description: "Fullscreen state and actions for the player store"
+---
+
+Controls fullscreen mode. Tries the container element first, then falls back to the media element. Required by `FullscreenButton`.
+
+## Import
+
+```ts
+import { fullscreen, selectFullscreen } from '@videojs/react';
+// or
+import { fullscreen, selectFullscreen } from '@videojs/html';
+```
+
+## Usage
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { createPlayer, fullscreen } from '@videojs/react';
+
+    const Player = createPlayer({
+      features: [fullscreen],
+    });
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import { createPlayer, fullscreen } from '@videojs/html';
+
+    const { ProviderMixin, PlayerController, context } = createPlayer({
+      features: [fullscreen],
+    });
+    ```
+  </Tab>
+</Tabs>
+
+## State
+
+<ResponseField name="fullscreen" type="boolean">
+  Whether the player is currently in fullscreen mode.
+</ResponseField>
+
+<ResponseField name="fullscreenAvailability" type="MediaFeatureAvailability">
+  Whether fullscreen is supported in the current environment.
+
+  Possible values:
+  - `'available'` — Ready to use
+  - `'unavailable'` — Could work but not ready yet
+  - `'unsupported'` — Platform can never support fullscreen
+</ResponseField>
+
+## Actions
+
+<ResponseField name="requestFullscreen()" type="() => Promise<void>">
+  Enter fullscreen mode. Returns a promise that resolves when fullscreen is active.
+</ResponseField>
+
+<ResponseField name="exitFullscreen()" type="() => Promise<void>">
+  Exit fullscreen mode. Returns a promise that resolves when fullscreen is exited.
+</ResponseField>
+
+## Selector
+
+Use `selectFullscreen` to subscribe to only the fullscreen slice of state. Returns `undefined` if the fullscreen feature is not configured.
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { selectFullscreen, usePlayer } from '@videojs/react';
+
+    function FullscreenButton() {
+      const fs = usePlayer(selectFullscreen);
+      if (!fs || fs.fullscreenAvailability !== 'available') return null;
+
+      return (
+        <button onClick={fs.fullscreen ? fs.exitFullscreen : fs.requestFullscreen}>
+          {fs.fullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+        </button>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="HTML">
+    ```ts
+    import { createPlayer, MediaElement, selectFullscreen } from '@videojs/html';
+    import { videoFeatures } from '@videojs/html/video';
+
+    const { PlayerController, context } = createPlayer({ features: videoFeatures });
+
+    class FullscreenButton extends MediaElement {
+      readonly #fullscreen = new PlayerController(this, context, selectFullscreen);
+    }
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+  Required by: `FullscreenButton`
+</Note>

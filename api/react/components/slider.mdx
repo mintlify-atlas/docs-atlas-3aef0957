@@ -1,0 +1,196 @@
+---
+title: "Slider"
+description: "Composable base slider primitive with track, fill, thumb, preview, and value sub-components."
+---
+
+`Slider` is a generic range input primitive. It manages value, pointer tracking, and drag interactions. Domain-specific sliders like `TimeSlider` and `VolumeSlider` extend this with media-specific bindings.
+
+## Sub-components
+
+| Component | Description |
+|-----------|-------------|
+| `Slider.Root` | Root slider container. Manages value, drag, and keyboard state. |
+| `Slider.Track` | Visual track bar that receives click-to-seek. |
+| `Slider.Fill` | Fill bar that represents the current value. |
+| `Slider.Buffer` | Buffer bar that represents buffered amount (used in `TimeSlider`). |
+| `Slider.Thumb` | Draggable thumb handle. |
+| `Slider.Preview` | Container for pointer-position-anchored previews. |
+| `Slider.Value` | Displays a formatted value at the current or pointer position. |
+| `Slider.Thumbnail` | Displays a thumbnail image inside a preview at the pointer position. |
+
+## Import
+
+```tsx
+import { Slider } from '@videojs/react';
+```
+
+## Basic Usage
+
+```tsx
+import { Slider } from '@videojs/react';
+
+function CustomSlider({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  return (
+    <Slider.Root
+      value={value}
+      min={0}
+      max={100}
+      step={1}
+      onValueChange={onChange}
+      className="slider"
+    >
+      <Slider.Track className="slider-track">
+        <Slider.Fill className="slider-fill" />
+      </Slider.Track>
+      <Slider.Thumb className="slider-thumb" />
+    </Slider.Root>
+  );
+}
+```
+
+### With Preview
+
+```tsx
+import { Slider } from '@videojs/react';
+
+function SliderWithPreview({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  return (
+    <Slider.Root
+      value={value}
+      min={0}
+      max={100}
+      onValueChange={onChange}
+      className="slider"
+    >
+      <Slider.Track className="slider-track">
+        <Slider.Fill className="slider-fill" />
+      </Slider.Track>
+      <Slider.Thumb className="slider-thumb" />
+      <Slider.Preview className="slider-preview">
+        <Slider.Value type="pointer" className="slider-value" />
+      </Slider.Preview>
+    </Slider.Root>
+  );
+}
+```
+
+## Slider.Root Props
+
+<ParamField path="value" type="number">
+  Current slider value. The slider is uncontrolled when omitted. Defaults to `0`.
+</ParamField>
+
+<ParamField path="min" type="number">
+  Minimum allowed value. Defaults to `0`.
+</ParamField>
+
+<ParamField path="max" type="number">
+  Maximum allowed value. Defaults to `100`.
+</ParamField>
+
+<ParamField path="step" type="number">
+  Step size for arrow key navigation. Defaults to `1`.
+</ParamField>
+
+<ParamField path="largeStep" type="number">
+  Large step size for `Page Up` / `Page Down` key navigation. Defaults to `10`.
+</ParamField>
+
+<ParamField path="orientation" type='"horizontal" | "vertical"'>
+  Slider orientation. Defaults to `"horizontal"`.
+</ParamField>
+
+<ParamField path="disabled" type="boolean">
+  Disables the slider.
+</ParamField>
+
+<ParamField path="thumbAlignment" type="string">
+  Controls how the thumb aligns relative to the track edges at min/max positions.
+</ParamField>
+
+<ParamField path="label" type="string">
+  `aria-label` for the slider. Announced by screen readers.
+</ParamField>
+
+<ParamField path="onValueChange" type="(value: number) => void">
+  Called continuously as the value changes during drag.
+</ParamField>
+
+<ParamField path="onValueCommit" type="(value: number) => void">
+  Called once when the user commits a value (on drag end or keyboard interaction).
+</ParamField>
+
+<ParamField path="onDragStart" type="() => void">
+  Called when the user begins dragging the thumb.
+</ParamField>
+
+<ParamField path="onDragEnd" type="() => void">
+  Called when the user releases the thumb after dragging.
+</ParamField>
+
+<ParamField path="className" type="string | ((state: SliderRoot.State) => string)">
+  CSS class name or a function that receives state and returns a class name.
+</ParamField>
+
+<ParamField path="style" type="CSSProperties | ((state: SliderRoot.State) => CSSProperties)">
+  Inline style or a function that receives state and returns a style object.
+</ParamField>
+
+<ParamField path="render" type="ReactElement | ((props: HTMLProps, state: SliderRoot.State) => ReactElement | null)">
+  Custom render prop for the root element.
+</ParamField>
+
+## Slider.Value Props
+
+<ParamField path="type" type='"current" | "pointer"' required>
+  Which value to display. `"current"` shows the committed value; `"pointer"` shows the value at the current pointer position (for hover previews).
+</ParamField>
+
+## State Data Attributes
+
+These attributes are reflected on `Slider.Root`.
+
+| Attribute | Value / Description |
+|-----------|---------------------|
+| `data-pointing` | Present while the pointer is hovering over the slider. |
+| `data-interactive` | Present when the user is interacting (pointing or dragging). |
+| `data-dragging` | Present while the thumb is being dragged. |
+| `data-orientation` | `"horizontal"` \| `"vertical"` — reflects the `orientation` prop. |
+
+### CSS Custom Properties
+
+| Property | Description |
+|----------|-------------|
+| `--media-slider-fill` | Current fill percentage (0–100). Use to position fill and thumb elements. |
+| `--media-slider-pointer` | Pointer position percentage (0–100). Use to position preview elements. |
+
+### CSS Styling Example
+
+```css
+.slider-fill {
+  width: var(--media-slider-fill);
+}
+
+.slider-thumb {
+  left: var(--media-slider-fill);
+}
+
+/* Expand track on interaction */
+.slider[data-interactive] .slider-track {
+  height: 6px;
+}
+
+/* Show preview on hover */
+.slider[data-pointing] .slider-preview {
+  opacity: 1;
+}
+```
+
+## Accessibility
+
+Renders with `role="slider"` and automatic ARIA attributes (`aria-valuemin`, `aria-valuemax`, `aria-valuenow`, `aria-valuetext`). Override the label with the `label` prop. Keyboard controls:
+
+- `Arrow Left` / `Arrow Right`: step by `step`
+- `Page Up` / `Page Down`: step by `largeStep`
+- `Home`: jump to minimum
+- `End`: jump to maximum

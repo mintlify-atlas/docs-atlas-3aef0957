@@ -1,0 +1,143 @@
+---
+title: "@videojs/utils"
+description: "Shared utilities for type predicates, DOM helpers, events, and more — used across all Video.js packages."
+---
+
+<Note>
+  **Beta** — `@videojs/utils` is close to stable. Experimental adoption in real projects is welcome.
+</Note>
+
+`@videojs/utils` provides the shared utility functions used across every package in the Video.js monorepo. It is the lowest-level dependency in the stack, with no Video.js runtime dependencies of its own.
+
+```text
+utils ← store ← core ← html / react / react-native
+```
+
+## Installation
+
+<CodeGroup>
+
+```bash npm
+npm install @videojs/utils
+```
+
+```bash pnpm
+pnpm add @videojs/utils
+```
+
+```bash yarn
+yarn add @videojs/utils
+```
+
+```bash bun
+bun add @videojs/utils
+```
+
+</CodeGroup>
+
+## Exports
+
+| Entry point | Description |
+|---|---|
+| `./predicate` | Type-safe predicate functions (`isUndefined`, `isNull`, `isFunction`, `isString`, `isObject`) |
+| `./dom` | DOM helpers (`listen`, `animationFrame`, `idleCallback`, `onEvent`) |
+| `./array` | Array utilities |
+| `./events` | Event utilities |
+| `./function` | Function utilities |
+| `./object` | Object utilities |
+| `./string` | String utilities |
+| `./style` | CSS style utilities |
+| `./time` | Time formatting utilities |
+| `./number` | Number utilities |
+| `./types` | Shared TypeScript types |
+
+## Predicate utilities (`./predicate`)
+
+Type-safe narrowing predicates used throughout the codebase. Always prefer these over inline `typeof` checks:
+
+```typescript
+import { isUndefined, isNull, isFunction, isString, isObject } from '@videojs/utils/predicate';
+
+isUndefined(value)   // value is undefined
+isNull(value)        // value is null
+isFunction(value)    // value is a function
+isString(value)      // value is a string
+isObject(value)      // value is a non-null object
+```
+
+Each function returns a type predicate for proper TypeScript narrowing:
+
+```typescript
+function process(handler: unknown) {
+  if (isFunction(handler)) {
+    handler(); // TypeScript knows handler is a function here
+  }
+}
+```
+
+| Instead of | Use |
+|---|---|
+| `x === undefined` | `isUndefined(x)` |
+| `x === null` | `isNull(x)` |
+| `typeof x === 'function'` | `isFunction(x)` |
+| `typeof x === 'string'` | `isString(x)` |
+
+## DOM helpers (`./dom`)
+
+Browser-specific utilities for events, animation frames, and idle callbacks. All return cleanup functions and support `AbortSignal`:
+
+```typescript
+import { listen, animationFrame, idleCallback, onEvent } from '@videojs/utils/dom';
+
+// Add an event listener with a cleanup function
+const unlisten = listen(element, 'click', handler);
+unlisten(); // removes the listener
+
+// Works with AbortController for managing multiple cleanups
+const ac = new AbortController();
+listen(element, 'click', handler, { signal: ac.signal });
+listen(element, 'keydown', handler, { signal: ac.signal });
+ac.abort(); // removes all listeners at once
+
+// Request an animation frame with cleanup
+const cancel = animationFrame((timestamp) => {
+  // runs on next frame
+});
+cancel(); // cancels if not yet called
+
+// Schedule work during idle time
+const cancelIdle = idleCallback((deadline) => {
+  // runs when the browser is idle
+});
+
+// Wait for an event to fire (Promise-based)
+const event = await onEvent(video, 'canplay');
+```
+
+| Function | Returns | Description |
+|---|---|---|
+| `listen(target, event, handler, options?)` | `() => void` | Adds an event listener, returns a cleanup function |
+| `animationFrame(callback)` | `() => void` | Schedules `requestAnimationFrame`, returns a cancel function |
+| `idleCallback(callback)` | `() => void` | Schedules `requestIdleCallback`, returns a cancel function |
+| `onEvent(target, event)` | `Promise<Event>` | Returns a promise that resolves when the event fires |
+
+## No runtime dependencies
+
+`@videojs/utils` has no runtime dependencies. All exports are tree-shakeable (`"sideEffects": false`).
+
+## Related packages
+
+<CardGroup cols={2}>
+  <Card title="@videojs/store" icon="database" href="/packages/store">
+    State management that depends on utils.
+  </Card>
+  <Card title="@videojs/core" icon="layers" href="/packages/core">
+    Core logic that depends on utils.
+  </Card>
+  <Card title="@videojs/spf" icon="bolt" href="/packages/spf">
+    Stream Processing Framework that depends on utils.
+  </Card>
+  <Card title="@videojs/html" icon="code" href="/packages/html">
+    HTML player that depends on utils.
+  </Card>
+</CardGroup>

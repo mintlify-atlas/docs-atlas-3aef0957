@@ -1,0 +1,156 @@
+---
+title: "createPlayer()"
+description: "Factory function that creates a typed React player with Provider, Container, and hooks bound to your feature set."
+---
+
+`createPlayer` is the entry point for setting up a Video.js player in React. Pass a `features` array and receive a set of React components and hooks that are fully typed to those features.
+
+```tsx
+import { createPlayer } from '@videojs/react';
+import { videoFeatures } from '@videojs/react/video';
+
+const Player = createPlayer({ features: videoFeatures });
+// Player.Provider, Player.Container, Player.usePlayer, Player.useMedia
+```
+
+The returned hooks are typed according to the features you provide, giving you full type safety for state selectors and actions.
+
+## Overloads
+
+<Tabs>
+  <Tab title="Video">
+    ```tsx
+    import { createPlayer } from '@videojs/react';
+    import { videoFeatures } from '@videojs/react/video';
+
+    const Player = createPlayer({ features: videoFeatures });
+    // Returns CreatePlayerResult<VideoPlayerStore>
+    ```
+  </Tab>
+  <Tab title="Audio">
+    ```tsx
+    import { createPlayer } from '@videojs/react';
+    import { audioFeatures } from '@videojs/react/audio';
+
+    const Player = createPlayer({ features: audioFeatures });
+    // Returns CreatePlayerResult<AudioPlayerStore>
+    ```
+  </Tab>
+  <Tab title="Custom features">
+    ```tsx
+    import { createPlayer } from '@videojs/react';
+    import { myFeatureA, myFeatureB } from './features';
+
+    const Player = createPlayer({ features: [myFeatureA, myFeatureB] });
+    // Returns CreatePlayerResult<PlayerStore<[typeof myFeatureA, typeof myFeatureB]>>
+    ```
+  </Tab>
+</Tabs>
+
+## Parameters
+
+<ParamField path="config" type="CreatePlayerConfig" required>
+  Configuration object for the player.
+
+  <Expandable title="properties">
+    <ParamField path="config.features" type="AnyPlayerFeature[]" required>
+      Array of feature objects that define the player's capabilities and state shape. Use `videoFeatures` from `@videojs/react/video` for standard video playback, or compose your own feature set.
+    </ParamField>
+
+    <ParamField path="config.displayName" type="string">
+      Optional display name used for the `Provider` component in React DevTools. Only applied in development builds (`__DEV__`).
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+## Return value
+
+Returns a `CreatePlayerResult` object containing components and hooks typed to the features you passed.
+
+<ResponseField name="Provider" type="FC<ProviderProps>">
+  React component that creates a player store and makes it available to all descendants via context. Every player needs exactly one `Provider`. It renders no visible element — it is a pure state boundary.
+
+  ```tsx
+  <Player.Provider>
+    {/* all player components go here */}
+  </Player.Provider>
+  ```
+
+  <Expandable title="ProviderProps">
+    <ResponseField name="children" type="ReactNode" required>
+      The component subtree that will have access to the player store.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="Container" type="ForwardRefExoticComponent<ContainerProps>">
+  The player root element. Wraps your media element and controls. Attaches the store to the DOM subtree when a media element is registered, enabling fullscreen and other container-scoped features.
+
+  ```tsx
+  <Player.Container className="my-player">
+    <video src="video.mp4" />
+    <Controls />
+  </Player.Container>
+  ```
+
+  Accepts all standard `HTMLDivElement` attributes via `ContainerProps extends HTMLAttributes<HTMLDivElement>`.
+</ResponseField>
+
+<ResponseField name="usePlayer" type="UsePlayerHook<Store>">
+  Typed hook for accessing the player store. See [usePlayer](/api/react/use-player) for full documentation.
+
+  Without a selector, returns the store instance (no subscription). With a selector, subscribes to derived state and re-renders on changes.
+</ResponseField>
+
+<ResponseField name="useMedia" type="() => Media | null">
+  Hook that returns the current `HTMLMediaElement` registered with the player, or `null` if no media element has mounted yet. See [useMedia](/api/react/use-media) for full documentation.
+</ResponseField>
+
+## Basic usage
+
+```tsx
+import { createPlayer } from '@videojs/react';
+import { videoFeatures } from '@videojs/react/video';
+
+const Player = createPlayer({ features: videoFeatures });
+
+function App() {
+  return (
+    <Player.Provider>
+      <Player.Container style={{ width: 640, aspectRatio: '16/9' }}>
+        <video src="https://example.com/video.mp4" autoPlay muted playsInline loop />
+      </Player.Container>
+    </Player.Provider>
+  );
+}
+```
+
+## Extended layout
+
+The `Provider` scope can extend beyond the fullscreen target. Components outside `Container` still have full store access but won't enter fullscreen with the video.
+
+```tsx
+<Player.Provider>
+  <Player.Container>
+    <video src="video.mp4" />
+    <Controls />
+  </Player.Container>
+
+  {/* Outside container — still has store access */}
+  <Transcript />
+  <PlaylistSidebar />
+</Player.Provider>
+```
+
+## TypeScript types
+
+```ts
+import type { CreatePlayerConfig, CreatePlayerResult, ProviderProps } from '@videojs/react';
+```
+
+| Type | Description |
+| --- | --- |
+| `CreatePlayerConfig<Features>` | Input config accepted by `createPlayer`. |
+| `CreatePlayerResult<Store>` | The object returned by `createPlayer`. |
+| `ProviderProps` | Props accepted by the `Provider` component. |
+| `UsePlayerHook<Store>` | The typed `usePlayer` hook signature. |

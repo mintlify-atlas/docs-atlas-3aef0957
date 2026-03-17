@@ -1,0 +1,98 @@
+---
+title: "SeekButton"
+description: "Accessible seek button for skipping forward or backward by a configurable number of seconds."
+---
+
+`SeekButton` seeks the media by a configurable number of `seconds`. Positive values seek forward, negative values seek backward. The seek is clamped to media bounds (0 to duration).
+
+<Note>
+  Requires the `time` feature to be registered with the player.
+</Note>
+
+## Import
+
+```tsx
+import { SeekButton } from '@videojs/react';
+```
+
+## Basic Usage
+
+```tsx
+import { SeekButton } from '@videojs/react';
+
+function PlayerControls() {
+  return (
+    <>
+      <SeekButton seconds={-10}>-10s</SeekButton>
+      <SeekButton seconds={30}>+30s</SeekButton>
+    </>
+  );
+}
+```
+
+### Custom Render
+
+```tsx
+import { RewindIcon, FastForwardIcon } from './icons';
+import { SeekButton } from '@videojs/react';
+
+function PlayerControls() {
+  return (
+    <>
+      <SeekButton
+        seconds={-10}
+        render={(props, state) => (
+          <button {...props}>
+            <RewindIcon /> {Math.abs(state.seconds)}s
+          </button>
+        )}
+      />
+      <SeekButton
+        seconds={30}
+        render={(props, state) => (
+          <button {...props}>
+            <FastForwardIcon /> {state.seconds}s
+          </button>
+        )}
+      />
+    </>
+  );
+}
+```
+
+## Props
+
+<ParamField path="seconds" type="number">
+  Number of seconds to seek. Positive values seek forward, negative values seek backward. Defaults to `30`.
+</ParamField>
+
+<ParamField path="render" type="ReactElement | ((props: HTMLProps, state: SeekButton.State) => ReactElement | null)">
+  Custom render prop. Receives the computed HTML props and current state.
+</ParamField>
+
+<ParamField path="label" type="string | ((state: SeekButton.State) => string)">
+  Override the automatic `aria-label`. By default: `"Seek forward 30 seconds"` or `"Seek backward 10 seconds"`.
+</ParamField>
+
+<ParamField path="disabled" type="boolean">
+  Disables the button.
+</ParamField>
+
+<ParamField path="className" type="string | ((state: SeekButton.State) => string)">
+  CSS class name or a function that receives state and returns a class name.
+</ParamField>
+
+<ParamField path="style" type="CSSProperties | ((state: SeekButton.State) => CSSProperties)">
+  Inline style or a function that receives state and returns a style object.
+</ParamField>
+
+## State Data Attributes
+
+| Attribute | Value / Description |
+|-----------|---------------------|
+| `data-direction` | `"forward"` \| `"backward"` — seek direction derived from the `seconds` prop. |
+| `data-seconds` | The configured seek amount in seconds. |
+
+## Accessibility
+
+Renders a `<button>` element. The `aria-label` is automatically set to describe the action, e.g. `"Seek forward 30 seconds"` or `"Seek backward 10 seconds"`. Override with the `label` prop. Keyboard activation: `Enter` / `Space`.

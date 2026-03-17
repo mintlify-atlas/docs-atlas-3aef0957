@@ -1,0 +1,164 @@
+---
+title: "@videojs/store"
+description: "Reactive state management for external systems, with selector-based subscriptions and platform bindings for HTML and React."
+---
+
+<Note>
+  **Beta** — `@videojs/store` is close to stable. Experimental adoption in real projects is welcome.
+</Note>
+
+`@videojs/store` provides reactive state management designed for use across different rendering environments. It uses a selector-based subscription model to minimize unnecessary re-renders and updates, and ships separate bindings for HTML/DOM and React environments.
+
+## Installation
+
+<CodeGroup>
+
+```bash npm
+npm install @videojs/store
+```
+
+```bash pnpm
+pnpm add @videojs/store
+```
+
+```bash yarn
+yarn add @videojs/store
+```
+
+```bash bun
+bun add @videojs/store
+```
+
+</CodeGroup>
+
+## Exports
+
+| Entry point | Description |
+|---|---|
+| `.` | Core — `createSelector`, `shallowEqual`, and types |
+| `./html` | HTML/DOM store bindings |
+| `./react` | React store bindings — `useSelector`, `useStore` |
+
+## How it works
+
+The store uses a **selector-based subscription** model. Rather than subscribing to the entire state tree, you define selectors that derive specific values. Subscribers are only notified when the selected value changes, as determined by a comparator function (default: `shallowEqual`).
+
+```text
+store state → selector → derived value → comparator → subscriber callback
+                                                  ↑
+                                       only fires on change
+```
+
+This keeps your UI responsive while avoiding unnecessary work when unrelated parts of the state change.
+
+## Core API
+
+### `createSelector`
+
+Creates a memoized selector function. Use selectors to derive specific values from state:
+
+```typescript
+import { createSelector } from '@videojs/store';
+
+const selectVolume = createSelector((state) => state.volume);
+const selectIsPaused = createSelector((state) => state.paused);
+
+// Compose selectors
+const selectIsAudible = createSelector(
+  (state) => state.volume > 0 && !state.muted
+);
+```
+
+### `shallowEqual`
+
+The default comparator used by selectors. Performs a shallow equality check on objects and arrays:
+
+```typescript
+import { shallowEqual } from '@videojs/store';
+
+shallowEqual({ a: 1 }, { a: 1 }); // true
+shallowEqual({ a: 1 }, { a: 2 }); // false
+```
+
+Provide a custom comparator to `createSelector` when you need stricter or looser equality:
+
+```typescript
+import { createSelector } from '@videojs/store';
+
+const selectTracks = createSelector(
+  (state) => state.textTracks,
+  (a, b) => a.length === b.length // custom comparator
+);
+```
+
+## React bindings (`./react`)
+
+The React bindings integrate the store with React's rendering model:
+
+```typescript
+import { useSelector, useStore } from '@videojs/store/react';
+import { createSelector } from '@videojs/store';
+
+const selectPaused = createSelector((state) => state.paused);
+
+function PlayButton() {
+  const paused = useSelector(selectPaused);
+  const store = useStore();
+
+  return (
+    <button onClick={() => store.dispatch({ type: paused ? 'play' : 'pause' })}>
+      {paused ? 'Play' : 'Pause'}
+    </button>
+  );
+}
+```
+
+| Export | Description |
+|---|---|
+| `useSelector(selector)` | Subscribes a component to a slice of store state; re-renders only when the selected value changes |
+| `useStore()` | Returns the raw store instance |
+
+## HTML bindings (`./html`)
+
+The HTML bindings connect the store to DOM elements outside of a component framework:
+
+```typescript
+import { createStoreController } from '@videojs/store/html';
+
+const controller = createStoreController(store);
+
+controller.subscribe(selectVolume, (volume) => {
+  document.querySelector('.volume-display').textContent = `${Math.round(volume * 100)}%`;
+});
+```
+
+## Types
+
+| Type | Description |
+|---|---|
+| `Selector<State, Value>` | A function that derives a value from state |
+| `Comparator<Value>` | A function `(a: Value, b: Value) => boolean` used to detect changes |
+
+## Peer dependencies
+
+| Package | Required | Notes |
+|---|---|---|
+| `@videojs/element` | Optional | Required only when using `./html` bindings |
+| `react` `^18 \|\| ^19` | Optional | Required only when using `./react` bindings |
+
+## Related packages
+
+<CardGroup cols={2}>
+  <Card title="@videojs/core" icon="layers" href="/packages/core">
+    Core player logic that builds on top of this package.
+  </Card>
+  <Card title="@videojs/react" icon="atom" href="/packages/react">
+    React package that re-exports useSelector and useStore.
+  </Card>
+  <Card title="@videojs/utils" icon="wrench" href="/packages/utils">
+    Shared utilities used by this package.
+  </Card>
+  <Card title="@videojs/html" icon="code" href="/packages/html">
+    HTML package that uses the HTML store bindings.
+  </Card>
+</CardGroup>
